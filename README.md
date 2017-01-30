@@ -19,8 +19,8 @@ This installs TensorFlow on a user level. Please check for a newer version when 
 These steps follow mostly [Tutorial1](https://joernhees.de/blog/2015/11/23/setting-up-a-linked-data-mirror-from-rdf-dumps-dbpedia-2015-04-freebase-wikidata-linkedgeodata-with-virtuoso-7-2-1-and-docker-optional/#comment-6451) and the official [Bulkload example](https://virtuoso.openlinksw.com/dataspace/doc/dav/wiki/Main/VirtBulkRDFLoaderExampleDbpedia), but with some extras, since I didn't have sudo access on the slurm cluster.
 
 ### Download the data
-`mkdir -p /home/user/$USERNAME/data/datasets/dbpedia3.9
-cd /home/user/$USERNAME/data/datasets/dbpedia3.9`
+`mkdir -p /home/user/$USERNAME/data/datasets/dbpedia3.9`  
+`cd /home/user/$USERNAME/data/datasets/dbpedia3.9`
 
 `wget -r -nc -nH --cut-dirs=1 -np -l1 -A '*.nt.bz2' -A '*.owl' -R '*unredirected*' http://downloads.dbpedia.org/3.9/{en/,dbpedia_3.9.owl}`
 
