@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.*;
 import org.apache.jena.query.*;
 
@@ -21,12 +20,14 @@ public class Main {
 			System.out.println("Error: " + e);
 		}
 
-		query = prefix + query;
+		// query = prefix + query;
 		return query;
 	}
 
     public static void main(String args[]){
-    	String appendedQuery = appendPrefixes(args[0]);
+    	String noBackslash = args[0].replaceAll("\\\\", "");
+
+    	String appendedQuery = appendPrefixes(noBackslash);
 	    Query query = QueryFactory.create(appendedQuery);
 	    Op op = Algebra.compile(query) ;
         System.out.println(op);

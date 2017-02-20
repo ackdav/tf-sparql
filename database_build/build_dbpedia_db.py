@@ -29,8 +29,9 @@ with open("tf-db.txt", 'a') as f:
 		line_no_tabs = re.sub(r'%09|%0B', '+', line)
 		line_single_spaces = re.sub(r'\++', '+', line_no_tabs)
 		line_no_formatting = re.sub(r'%0A|%0D', '', line_single_spaces)
+
 		#decode url nicely into SPARQL query
-		decoded = urllib.unquote_plus(line_no_formatting.encode('ascii'))
+		decoded = urllib.unquote_plus(line_no_formatting.encode('utf-8'))
 
 		#try to fetch result size
 		try:

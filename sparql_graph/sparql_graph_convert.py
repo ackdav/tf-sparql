@@ -2,32 +2,82 @@
 Executes Main.java in the same directory and prints it out
 '''
 import subprocess, re
-from subprocess import STDOUT,PIPE
+from subprocess import STDOUT,PIPE,Popen
+import pyparsing as pp
 
-# def compile_java(java_file):
-# 	cmd = ["javac", "-classpath", '.:/Users/David/libs/jena/lib/*' + java_file]
-# 	proc = subprocess.Popen(cmd)
+def compile_java(java_file):
+	cmd = ["javac", "-classpath", '/Users/David/libs/jena/lib/*:.', java_file]
+	proc = subprocess.Popen(cmd)
 
-def execute_java(java_file, stdin):
+# executes Main.java in same folder to convert to SPARQL Algebra expressino
+def execute_java(java_file, args):
 	graph = ''
-	p = subprocess.Popen(["java", "-classpath", ".:/Users/David/libs/jena/lib/*", "Main", stdin], stdout=subprocess.PIPE)
-	for line in iter(p.stdout.readline, b''):
-		# print line,
+	cmd = ["java", "-classpath", "/Users/David/libs/jena/lib/*:.", java_file, args]
+	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+	stdout, stderr = proc.communicate()
+
+	for line in stdout:
 		graph += line
+
+	print graph
 	return graph
 
-def traverse_graph(tree):
-	for line in iter(tree):
-		if line.count("(")>0:
-			print line
+
+def parse_sexp(string):
+    """
+    >>> parse_sexp("(+ 5 (+ 3 5))")
+    [['+', '5', ['+', '3', '5']]]
+    
+    """
+    sexp = [[]]
+    word = ''
+    in_str = False
+    for char in string:
+        if char == '(' and not in_str:
+            sexp.append([])
+        elif char == ')' and not in_str:
+            if word:
+                sexp[-1].append(word)
+                word = ''
+            temp = sexp.pop()
+            sexp[-1].append(temp)
+        elif char in (' ', '\n', '\t') and not in_str:
+            if word:
+                sexp[-1].append(word)
+                word = ''
+        elif char == '\"':
+            in_str = not in_str
+        else:
+            word += char
+    return sexp[0]
+
+# def traverse_graph(tree):
+	
+# 	LP = pp.Literal("(").suppress()
+# 	RP = pp.Literal(")").suppress()
+# 	String = pp.Word(pp.alphanums + '_')
+# 	SingleQuoteString = pp.QuotedString(quoteChar="'", unquoteResults=False)
+# 	DoubleQuoteString = pp.QuotedString(quoteChar='"', unquoteResults=False)
+# 	QuotedString = SingleQuoteString | DoubleQuoteString
+# 	Atom = String | QuotedString
+# 	SExpr = pp.Forward()
+# 	SExprList = pp.Group(pp.ZeroOrMore(SExpr | Atom))
+# 	SExpr << (LP + SExprList + RP)
+
+# 	data = '(gimme [some {nested, nested [lists]}])' 
+
+# 	print enclosed.parseString(tree).asList()
 
 def main():
-	query = 'PREFIX dbpedia-de: <http://de.dbpedia.org/resource/>PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>PREFIX dbpedia-fr: <http://fr.dbpedia.org/resource/>PREFIX owl: <http://www.w3.org/2002/07/owl#>PREFIX dcterms: <http://purl.org/dc/terms/>PREFIX dbpedia: <http://dbpedia.org/resource/>PREFIX dbpprop: <http://dbpedia.org/property/>PREFIX foaf: <http://xmlns.com/foaf/0.1/>SELECT ?resWHERE { dbpedia:Rejection_sampling dbpedia-owl:abstract ?res FILTER langMatches(lang(?res), "en") }'
+	compile_java('Main.java')
+	query = "CONSTRUCT { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . }WHERE { { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . } UNION { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . } }"
 	query = re.sub(r'([A-Z]{3,})', r' \1', query)
+	query = ' '.join(query.split())
 
-	tree = execute_java('Main.java', query)
-	traverse_graph(tree)
 
+	tree = execute_java('Main', query)
+	root = parse_sexp(tree)
+	print root
 
 if __name__ == '__main__':
 	main()
