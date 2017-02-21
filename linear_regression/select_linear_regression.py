@@ -73,22 +73,22 @@ def load_dbpedia_data():
             line_split = re.split(r'[\t]', line)
 
             #split to get only part between where and select            
-            select_where = re.findall('SELECT(.*?)WHERE', line_split[0], re.DOTALL)
+            # select_where = re.findall('SELECT(.*?)WHERE', line_split[0], re.DOTALL)
             
-            # union_count = line_split[0].count("UNION")
+            union_count = line_split[0].count("UNION")
 
-            if len(select_where) > 0:
-                select_variables = select_where[0].count("?")
+            # if len(select_where) > 0:
+            #     select_variables = select_where[0].count("?")
 
 
-                try:
-                    if select_variables>=0:
-                        train_X = np.append(train_X,float(select_variables))
-                        train_Y = np.append(train_Y,float(line_split[1]))
-                        n_samples += 1
+            try:
+                if union_count>=0:
+                    train_X = np.append(train_X,float(union_count))
+                    train_Y = np.append(train_Y,float(line_split[1]))
+                    n_samples += 1
 
-                except ValueError,e:
-                    print ("error",e,"on line",line_split)
+            except ValueError,e:
+                print ("error",e,"on line",line_split)
 
 def linear_model():
     # Construct a linear model
@@ -121,13 +121,13 @@ def train_linear_model():
         plt.xlabel('SELECT variables')
         plt.ylabel('Execution time')
         plt.xticks([1,2,3,4])
-        plt.xlim(0.97,4.03)
-        plt.ylim(-0.03,8.1)
+        # plt.xlim(0.97,4.03)
+        # plt.ylim(-0.03,8.1)
         plt.legend()
         plt.show()
 
 def main():
-    load_bio_data()
+    load_dbpedia_data()
     train_linear_model()
 
 if __name__ == '__main__':
