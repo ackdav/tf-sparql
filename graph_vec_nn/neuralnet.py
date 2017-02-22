@@ -46,7 +46,7 @@ def load_data():
 	global y_vals_train
 	global x_vals_train
 
-	with open('tf-db-cold.log') as f:
+	with open('tf-db-cold.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
