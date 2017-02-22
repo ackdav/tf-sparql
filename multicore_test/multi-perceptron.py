@@ -41,11 +41,13 @@ def neural_net_model(data):
 
 def train_neural_network(x):
 	prediction = neural_net_model(x)
-	cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
+	cost = tf.reduce_mean(tf.abs(y - prediction))
 
-	optimizer = tf.train.AdamOptimizer().minimize(cost)
+	# cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
 
-	hm_epochs = 10
+	optimizer = tf.train.AdamOptimizer(0.05).minimize(cost)
+
+	hm_epochs = 3
 
 	with tf.Session() as sess:
 		sess.run(tf.initialize_all_variables())
@@ -56,9 +58,24 @@ def train_neural_network(x):
 				epoch_x,epoch_y  = mnist.train.next_batch(batch_size)
 				_,epoch_c = sess.run([optimizer, cost], feed_dict = {x: epoch_x, y: epoch_y})
 				epoch_loss += epoch_c
+
 			print('Epoch', epoch, 'completed out of ', hm_epochs, 'loss: ', epoch_loss)
+
+		for _ in range(100):
+			print prediction._shape._dims[1]._value
+
 		correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y,1))
+		correct = tf.Print(correct, [correct, tf.shape(correct), "anything I want"])
+
+		print tf.cast(tf.argmax(prediction, 1), "float")
+		print tf.cast(tf.argmax(y,1), "float")
+
+
 		accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
+
+		accuracy = tf.Print(accuracy, [accuracy, tf.shape(accuracy), "aaccurrraaacc I want"])
+
+
 		print('Accuracy:', accuracy.eval({x:mnist.test.images, y: mnist.test.labels}))
 
 train_neural_network(x)
