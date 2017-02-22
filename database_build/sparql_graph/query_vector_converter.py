@@ -42,7 +42,7 @@ def jena_graph(java_file, args):
 		# print line,
 		graph += line
 
-	# print graph
+	print graph
 	try:
 		graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
 

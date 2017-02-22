@@ -107,7 +107,7 @@ def train_neural_network(x):
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
-		for i in range(1000):
+		for i in range(5):
 			rand_index = np.random.choice(len(x_vals_train), size=batch_size)
 			rand_x = x_vals_train[rand_index]
 			rand_y = np.transpose([y_vals_train[rand_index]])
@@ -116,17 +116,20 @@ def train_neural_network(x):
 			temp_loss = sess.run(cost, feed_dict={x_data: rand_x, y_target: rand_y})
 			loss_vec.append(temp_loss)
 
-			test_temp_loss = sess.run(cost, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
-			test_loss.append(test_temp_loss)
+			# test_temp_loss = sess.run(cost, feed_dict={x_data: x_vals_test, y_target: np.transpose([y_vals_test])})
+			# test_loss.append(test_temp_loss)
+			# print test_temp_loss
 			
 			if (i+1)%100==0:
 			    print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
 
 		# evaluate accuracy
 		correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y_target,1))
+		print correct
 		accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
-		print('Accuracy:', accuracy.eval({x_data:x_vals_test, y_target: np.transpose([y_vals_test])}))
-
+		print('Accuracy: %.2f', accuracy.eval({x_data:x_vals_test, y_target: np.transpose([y_vals_test])}))
+		print("{0:.6f}".format(accuracy.eval({x_data:x_vals_test, y_target: np.transpose([y_vals_test])})))
+		print prediction.shape
 		plot_result(loss_vec, test_loss)
 
 def plot_result(loss_vec, test_loss):
