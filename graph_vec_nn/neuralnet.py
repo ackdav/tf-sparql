@@ -4,9 +4,9 @@ import numpy as np
 from random import sample
 import matplotlib.pyplot as plt
 
-n_nodes_hl1 = 15
-n_nodes_hl2 = 15
-n_nodes_hl3 = 5
+n_nodes_hl1 = 40
+n_nodes_hl2 = 40
+n_nodes_hl3 = 10
 
 x = tf.placeholder(shape=[None, 18], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
@@ -17,7 +17,7 @@ x_vals_test = np.array([])
 y_vals_test = np.array([])
 num_training_samples = 0
 batch_size = 10
-training_epochs = 300
+training_epochs = 250
 
 # Training loop
 loss_vec = []
@@ -119,7 +119,6 @@ def train_neural_network(x):
 				avg_cost += c / total_batch
 				avg_cost_vec.append(avg_cost)
 
-
 			# sample prediction
 	 		label_value = batch_y
 	 		estimate = p
@@ -136,13 +135,14 @@ def train_neural_network(x):
 						"estimated value:", estimate[i])
 				print ("[*]============================")
 
-		perc_err = tf.reduce_mean((y-prediction)/y)
-		
-		correct_prediction = tf.less(tf.cast(perc_err, "float"), 4.7)
-
+		perc_err = tf.divide(tf.abs(tf.subtract(y_vals_test, tf.cast(prediction, dtype=tf.float64))), tf.reduce_mean(y_vals_test))
+		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.15)
 		accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 
+		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
+
 		print "Test accuracy: {:.3f}".format(accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
+		print "relative error: ",mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
 		plot_result(loss_vec, avg_cost_vec)
 
 def plot_result(loss_vec, avg_cost_vec):
@@ -159,7 +159,6 @@ def plot_result(loss_vec, avg_cost_vec):
 def main():
 	print "hi"
 	load_data()
-	print x
 	train_neural_network(x)
 
 if __name__ == '__main__':
