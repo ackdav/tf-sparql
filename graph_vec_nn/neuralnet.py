@@ -1,25 +1,23 @@
-
 import tensorflow as tf
 import re, ast
 import numpy as np
 from random import sample
 import matplotlib.pyplot as plt
 
-n_nodes_hl1 = 100
-n_nodes_hl2 = 100
-n_nodes_hl3 = 50
+n_nodes_hl1 = 15
+n_nodes_hl2 = 15
+n_nodes_hl3 = 5
 
-batch_size = 10
-
-# x = tf.placeholder('float',[None,18])
-# y = tf.placeholder('float')
 x = tf.placeholder(shape=[None, 18], dtype=tf.float32)
-y = tf.placeholder('float')
+y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
 x_vals_train = np.array([])
 y_vals_train = np.array([])
 x_vals_test = np.array([])
 y_vals_test = np.array([])
+num_training_samples = 0
+batch_size = 10
+training_epochs = 200
 
 # Training loop
 loss_vec = []
@@ -37,6 +35,7 @@ def load_data():
 	global x_vals_test
 	global y_vals_train
 	global x_vals_train
+	global num_training_samples
 
 	with open('tf-db-cold.txt') as f:
 		for line in f:
@@ -62,6 +61,7 @@ def load_data():
 	y_vals_train = y_vals[indices]
 	y_vals_test = np.delete(y_vals, indices, 0)
 
+	num_training_samples = x_vals_train.shape[0]
 	# x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
 	# x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
@@ -78,10 +78,8 @@ def neural_net_model(data):
 
 	l1 = tf.add(tf.matmul(data, hidden_1_layer['weights']),hidden_1_layer['biases'])
 	l1 = tf.nn.relu(l1)
-
 	l2 = tf.add(tf.matmul(l1, hidden_2_layer['weights']),hidden_2_layer['biases'])
 	l2 = tf.nn.relu(l2)
-	
 	l3 = tf.add(tf.matmul(l2, hidden_3_layer['weights']),hidden_3_layer['biases'])
 	l3 = tf.nn.relu(l3)
 
@@ -91,42 +89,49 @@ def neural_net_model(data):
 
 def train_neural_network(x):
 	prediction = neural_net_model(x)
-	cost = tf.reduce_mean(tf.abs(y - prediction))
+	sig = tf.sigmoid(prediction)
+	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
 	# cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
 	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
-		for i in range(1000):
+		for epoch in range(training_epochs):
 			temp_loss = 0
+			avg_cost = 0.
+			total_batch = int(round(num_training_samples/batch_size))
+			for i in range(total_batch-1):
+				batch_x = x_vals_train[i*batch_size:(i+1)*batch_size]
+				batch_y = y_vals_train[i*batch_size:(i+1)*batch_size]
+				# Run optimization op (backprop) and cost op (to get loss value)
+				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
+    			                                          y: np.transpose([batch_y])})
+				loss_vec.append(temp_loss)
+				# Compute average loss
+				avg_cost += c / total_batch
 
-			rand_index = np.random.choice(len(x_vals_train), size=batch_size)
-			rand_x = x_vals_train[rand_index]
-			rand_y = np.transpose([y_vals_train[rand_index]])
-			# sess.run(optimizer, feed_dict={x: rand_x, y: rand_y})
-			_, temp_loss = sess.run([optimizer, cost], feed_dict={x: rand_x, y: rand_y})
+			# sample prediction
+	 		label_value = batch_y
+	 		estimate = p
+	 		err = label_value-estimate
+	 		# print ("num batch:", i)
 
-			loss_vec.append(temp_loss)
+			# Display logs per epoch step
+			if epoch % 50 == 0:
+				print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+					"{:.9f}".format(avg_cost))
+				print ("[*]----------------------------")
+				for i in xrange(3):
+					print ("label value:", label_value[i], \
+						"estimated value:", estimate[i])
+				print ("[*]============================")
 
-			if (i+1)%100==0:
-			    print('Generation: ' + str(i+1) + '. Loss = ' + str(temp_loss))
-
-		# evaluate accuracy
-		# correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y,1))
-		# accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
-
-		correct_prediction = tf.equal(tf.argmax(prediction,1), tf.argmax(y,0))
+		correct_prediction = tf.equal(tf.round(tf.clip_by_value(prediction,0,1)), y)
+		correct_prediction = tf.Print(correct_prediction, [correct_prediction])
 		accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
-		print "accuracy %.5f'" % sess.run(accuracy, feed_dict={x: x_vals_test, y: y_vals_test})
-		
-		# prediction=tf.argmax(y,1)
-		# print "predictions", prediction.eval(feed_dict={x: x_vals_test}, session=sess)
-		# print('Accuracy: %.2f' % accuracy.eval({x:x_vals_test, y: np.transpose([y_vals_test])}))
-		# print("{0:.6f}".format(accuracy.eval({x:x_vals_test, y: np.transpose([y_vals_test])})))
-
-		plot_result(loss_vec, test_loss)
+		print('Accuracy:', accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
 
 def plot_result(loss_vec, test_loss):
 	# Plot loss (MSE) over time
