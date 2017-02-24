@@ -3,21 +3,24 @@ import re, ast
 import numpy as np
 from random import sample
 import matplotlib.pyplot as plt
+# from tensorflow.python.ops import rnn, rnn_cell
 
-n_nodes_hl1 = 40
-n_nodes_hl2 = 40
-n_nodes_hl3 = 10
 
-x = tf.placeholder(shape=[None, 18], dtype=tf.float32)
+hm_epochs = 100
+batch_size = 64
+chunk_size = 9
+n_chunks = 2
+
+rnn_size = 64
+
+x = tf.placeholder(shape=[None, n_chunks, chunk_size], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
 x_vals_train = np.array([])
 y_vals_train = np.array([])
 x_vals_test = np.array([])
 y_vals_test = np.array([])
-num_training_samples = 0
-batch_size = 10
-training_epochs = 250
+
 
 # Training loop
 loss_vec = []
@@ -66,43 +69,33 @@ def load_data():
 	# x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
 	# x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
-def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([18,n_nodes_hl1])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
-	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
-	hidden_3_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl3]))}
+def recurrent_neural_network(x):
+	layer = {'weights':tf.Variable(tf.random_normal([rnn_size,1])),
+						'biases':tf.Variable(tf.random_normal([1]))}
 
-	output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl3,1])),
-		'biases':tf.Variable(tf.random_normal([1]))}
+	x = tf.transpose(x, [1,0,2])
+	x = tf.reshape(x, [-1, chunk_size])
+	x = tf.split(x, n_chunks, 0)
 
-	l1 = tf.add(tf.matmul(data, hidden_1_layer['weights']),hidden_1_layer['biases'])
-	l1 = tf.nn.relu(l1)
-	l2 = tf.add(tf.matmul(l1, hidden_2_layer['weights']),hidden_2_layer['biases'])
-	l2 = tf.nn.relu(l2)
-	l3 = tf.add(tf.matmul(l2, hidden_3_layer['weights']),hidden_3_layer['biases'])
-	l3 = tf.nn.relu(l3)
+	lstm_cell = tf.contrib.rnn.BasicLSTMCell(rnn_size)
+	outputs, states = tf.contrib.rnn.static_rnn(lstm_cell, x, dtype = tf.float32)
 
-	output = tf.matmul(l3, output_layer['weights']) + output_layer['biases']
+	output = tf.matmul(outputs[-1], layer['weights']) + layer['biases']
 
 	return output
 
 
-def accuracy(predictions, labels):
-    return (100.0 * np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))
-            / predictions.shape[0])
-
 def train_neural_network(x):
-	prediction = neural_net_model(x)
+	prediction = recurrent_neural_network(x)
+	sig = tf.sigmoid(prediction)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
-
+	# cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
 	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
-		for epoch in range(training_epochs):
+		for epoch in range(hm_epochs):
 			temp_loss = 0.
 			avg_cost = 0.
 
@@ -110,6 +103,8 @@ def train_neural_network(x):
 			for i in range(total_batch-1):
 				batch_x = x_vals_train[i*batch_size:(i+1)*batch_size]
 				batch_y = y_vals_train[i*batch_size:(i+1)*batch_size]
+				batch_x = batch_x.reshape((batch_size, n_chunks, chunk_size))
+
 				# Run optimization op (backprop) and cost op (to get loss value)
 				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
     			                                          y: np.transpose([batch_y])})
@@ -140,14 +135,16 @@ def train_neural_network(x):
 
 		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
 
-		print "Test accuracy: {:.3f}".format(accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
-		print "relative error: ",mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
+		print "Test accuracy: {:.3f}".format(accuracy.eval({x:x_vals_test.reshape((-1, n_chunks, chunk_size)), y: np.transpose([y_vals_test])}))
+		print "relative error: ",mean_relative_error.eval({x:x_vals_test.reshape((-1, n_chunks, chunk_size)), y: np.transpose([y_vals_test])})
 		plot_result(loss_vec, avg_cost_vec)
 
 def plot_result(loss_vec, avg_cost_vec):
 	# Plot loss (MSE) over time
 	plt.plot(loss_vec, 'k-', label='Train Loss')
 	plt.plot(avg_cost_vec, 'r--', label='Test Loss')
+	# plt.plot(test_loss, 'b--', label='root squared mean error')
+
 	plt.title('Loss (MSE) per Generation')
 	plt.xlabel('Generation')
 	plt.ylabel('Loss')
