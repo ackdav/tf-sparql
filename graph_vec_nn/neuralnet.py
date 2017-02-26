@@ -4,25 +4,33 @@ import numpy as np
 from random import sample
 import matplotlib.pyplot as plt
 
-n_nodes_hl1 = 40
+n_nodes_hl1 = 50
 n_nodes_hl2 = 40
-n_nodes_hl3 = 10
+n_nodes_hl3 = 20
 
-x = tf.placeholder(shape=[None, 18], dtype=tf.float32)
+x = tf.placeholder(shape=[None, 34], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
-x_vals_train = np.array([])
-y_vals_train = np.array([])
-x_vals_test = np.array([])
-y_vals_test = np.array([])
+x_vals_train = np.array([], dtype='float32')
+y_vals_train = np.array([], dtype='float32')
+x_vals_test = np.array([], dtype='float32')
+y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
-batch_size = 10
-training_epochs = 250
+batch_size = 50
+training_epochs = 400
 
 # Training loop
 loss_vec = []
 test_loss = []
 avg_cost_vec = []
+
+def setting_nodes(l1=40, l2=40, l3=20):
+	global n_nodes_hl1
+	global n_nodes_hl2
+	global n_nodes_hl3
+	n_nodes_hl1 = l1
+	n_nodes_hl2 = l2
+	n_nodes_hl3 = l3
 
 # Normalize by column (min-max norm to be between 0 and 1)
 def normalize_cols(m):
@@ -38,14 +46,14 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('tf-db-cold.txt') as f:
+	with open('tf-db-cold-1k.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
 			line = ast.literal_eval(line)
 			query_data.append(line)
 
-	y_vals = np.array([x[18]*10000 for x in query_data])
+	y_vals = np.array([float(x[34])*10000 for x in query_data])
 
 	for list in query_data:
 		del list[-1]
@@ -56,18 +64,18 @@ def load_data():
 	l = len(x_vals)
 	f = int(round(l*0.8))
 	indices = sample(range(l), f)
-	x_vals_train = x_vals[indices]
-	x_vals_test = np.delete(x_vals, indices, 0)
+	x_vals_train = x_vals[indices].astype('float32')
+	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
 
-	y_vals_train = y_vals[indices]
-	y_vals_test = np.delete(y_vals, indices, 0)
+	y_vals_train = y_vals[indices].astype('float32')
+	y_vals_test = np.delete(y_vals, indices, 0).astype('float32')
 
 	num_training_samples = x_vals_train.shape[0]
-	# x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-	# x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+	x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
+	x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
 def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([18,n_nodes_hl1])),
+	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([34,n_nodes_hl1])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
 	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
@@ -88,11 +96,6 @@ def neural_net_model(data):
 
 	return output
 
-
-def accuracy(predictions, labels):
-    return (100.0 * np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))
-            / predictions.shape[0])
-
 def train_neural_network(x):
 	prediction = neural_net_model(x)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
@@ -110,6 +113,7 @@ def train_neural_network(x):
 			for i in range(total_batch-1):
 				batch_x = x_vals_train[i*batch_size:(i+1)*batch_size]
 				batch_y = y_vals_train[i*batch_size:(i+1)*batch_size]
+
 				# Run optimization op (backprop) and cost op (to get loss value)
 				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
     			                                          y: np.transpose([batch_y])})
@@ -133,9 +137,10 @@ def train_neural_network(x):
 					print ("label value:", label_value[i], \
 						"estimated value:", estimate[i])
 				print ("[*]============================")
-
-		perc_err = tf.divide(tf.abs(tf.subtract(y_vals_test, tf.cast(prediction, dtype=tf.float64))), tf.reduce_mean(y_vals_test))
-		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.15)
+		perc_err = tf.divide(tf.abs(\
+			tf.subtract(y, prediction)), \
+			tf.reduce_mean(y))
+		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
 		accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 
 		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
@@ -155,6 +160,7 @@ def plot_result(loss_vec, avg_cost_vec):
 
 def main():
 	print "hi"
+	setting_nodes()
 	load_data()
 	train_neural_network(x)
 

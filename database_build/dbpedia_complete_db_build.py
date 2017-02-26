@@ -36,7 +36,7 @@ def write_db(query, time, result_size):
 		if query_vec != -1:
 			query_vec.insert(len(query_vec), time)
 			# write db
-			f.write(decoded + '\t' + str(query_vec) + '\t' + str(result_size) + '\n')
+			f.write(decoded + '\t' + str(query_vec) + '\t' + str(time) + '\t' + str(result_size) + '\n')
 			print 'wrote query '
 
 def run_log(log_file):

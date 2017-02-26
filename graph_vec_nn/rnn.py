@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 # from tensorflow.python.ops import rnn, rnn_cell
 
 
-hm_epochs = 100
-batch_size = 64
-chunk_size = 9
-n_chunks = 2
+hm_epochs = 300
+batch_size = 50
+chunk_size = 17
+n_chunks = 3
 
 rnn_size = 64
 
@@ -20,7 +20,6 @@ x_vals_train = np.array([])
 y_vals_train = np.array([])
 x_vals_test = np.array([])
 y_vals_test = np.array([])
-
 
 # Training loop
 loss_vec = []
@@ -41,14 +40,14 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('tf-db-cold.txt') as f:
+	with open('tf-db-cold-1k.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
 			line = ast.literal_eval(line)
 			query_data.append(line)
 
-	y_vals = np.array([x[18]*10000 for x in query_data])
+	y_vals = np.array([float(x[34])*10000 for x in query_data])
 
 	for list in query_data:
 		del list[-1]
@@ -59,15 +58,16 @@ def load_data():
 	l = len(x_vals)
 	f = int(round(l*0.8))
 	indices = sample(range(l), f)
-	x_vals_train = x_vals[indices]
-	x_vals_test = np.delete(x_vals, indices, 0)
 
-	y_vals_train = y_vals[indices]
-	y_vals_test = np.delete(y_vals, indices, 0)
+	x_vals_train = x_vals[indices].astype('float32')
+	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
+
+	y_vals_train = y_vals[indices].astype('float32')
+	y_vals_test = np.delete(y_vals, indices, 0).astype('float32')
 
 	num_training_samples = x_vals_train.shape[0]
-	# x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-	# x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+	x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
+	x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
 def recurrent_neural_network(x):
 	layer = {'weights':tf.Variable(tf.random_normal([rnn_size,1])),
@@ -90,7 +90,7 @@ def train_neural_network(x):
 	sig = tf.sigmoid(prediction)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
-	# cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
+
 	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
@@ -128,9 +128,11 @@ def train_neural_network(x):
 					print ("label value:", label_value[i], \
 						"estimated value:", estimate[i])
 				print ("[*]============================")
+		perc_err = tf.divide(tf.abs(\
+			tf.subtract(y, prediction)), \
+			tf.reduce_mean(y))
 
-		perc_err = tf.divide(tf.abs(tf.subtract(y_vals_test, tf.cast(prediction, dtype=tf.float64))), tf.reduce_mean(y_vals_test))
-		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.15)
+		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
 		accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 
 		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
