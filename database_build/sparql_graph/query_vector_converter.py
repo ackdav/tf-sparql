@@ -40,10 +40,12 @@ def jena_graph(java_file, args):
 
 	for line in stdout:
 		graph += line
+	print graph
 
 	try:
 		# TODO: escape URLs containing '(' and ')'
 		graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
+
 		return graph.asList()
 
 	except ParseException as pe:
@@ -128,7 +130,6 @@ def gen_graph(tree):
 					 		'bgptype':[0,0,0,0,0,0,0,0]}
 
 	tokenized_graph_list = list(tokenize_list(tree))
-	print tokenized_graph_list
 	query_cmds['wordcount'][0] = len(tokenized_graph_list)
 
 	for val, depth in tokenized_graph_list:
@@ -161,7 +162,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print convert_query("DESCRIBE <http://dbpedia.org/resource/Beaudesert,_Queensland>")
+	print convert_query(" PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Cityvibe> rdf:type ?type }")
 
 
 if __name__ == '__main__':
