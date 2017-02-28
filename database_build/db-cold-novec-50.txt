@@ -1,0 +1,20 @@
+DESCRIBE <http://dbpedia.org/resource/Beaudesert,_Queensland>	0.007991	166
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Robert_Alan_Shields,_Jr.> rdf:type ?type } 	0.004417	1
+ SELECT ?v WHERE {  <http://dbpedia.org/resource/Lithuania> <http://dbpedia.org/property/gdpNominal> ?v . } LIMIT 1	0.008599	1
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Grizedale_Forest> rdf:type ?type } 	0.006599	4
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Michael_Stuhlbarg> rdf:type ?type } 	0.005409	5
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Shelby_SuperCars> rdf:type ?type } 	0.004417	5
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Ernest_R._Davidson> rdf:type ?type } 	0.002402	6
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/John_B._Hess> rdf:type ?type } 	0.008426	1
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/August_Delling> rdf:type ?type } 	0.005643	6
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/This_Day_We_Fight!> rdf:type ?type } 	0.007062	6
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Georgetown_Hoyas> rdf:type ?type } 	0.00393	7
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT * WHERE { {?city rdfs:label 'Nova Xavantina'@en.} UNION { ?alias <http://dbpedia.org/property/redirect> ?city;  rdfs:label 'Nova Xavantina'@en. } UNION { ?alias <http://dbpedia.org/property/disambiguates> ?city;  rdfs:label 'Nova Xavantina'@en. } OPTIONAL { ?city <http://dbpedia.org/ontology/abstract> ?abstract} OPTIONAL { ?city geo:lat ?latitude; geo:long ?longitude}OPTIONAL { ?city foaf:depiction ?image } OPTIONAL { ?city rdfs:label ?name } OPTIONAL { ?city foaf:homepage ?home } OPTIONAL { ?city <http://dbpedia.org/ontology/populationTotal> ?population } OPTIONAL { ?city <http://dbpedia.org/ontology/thumbnail> ?thumbnail } FILTER (langMatches( lang(?abstract), 'en'))}	0.004755	1
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Cheryl_Mills> rdf:type ?type } 	0.004955	6
+ SELECT ?v WHERE {  <http://dbpedia.org/resource/Lithuania> <http://www.w3.org/2000/01/rdf-schema#comment> ?v . }	0.007258	1
+ SELECT ?v WHERE {  <http://dbpedia.org/resource/Morocco> <http://dbpedia.org/property/populationCensus> ?v . } LIMIT 1	0.004535	1
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Banco_Angolano_de_Investimentos> rdf:type ?type } 	0.003515	5
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Bay_Park,_San_Diego> rdf:type ?type } 	0.004203	1
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Josh_Bidwell> rdf:type ?type } 	0.006541	8
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Bob_Paris> rdf:type ?type } 	0.005852	5
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Harry_C._Carver> rdf:type ?type } 	0.003277	1

@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 hm_epochs = 300
 batch_size = 50
-chunk_size = 17
-n_chunks = 3
+chunk_size = 20
+n_chunks = 2
 
 rnn_size = 64
 
@@ -47,7 +47,7 @@ def load_data():
 			line = ast.literal_eval(line)
 			query_data.append(line)
 
-	y_vals = np.array([float(x[34])*10000 for x in query_data])
+	y_vals = np.array([float(x[39])*10000 for x in query_data])
 
 	for list in query_data:
 		del list[-1]

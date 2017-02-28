@@ -14,15 +14,17 @@ from collections import defaultdict
 # 	stdout, stderr = proc.communicate()
 # executes Main.java in same folder to convert to SPARQL Algebra expressino
 
-def convert_query(query):
+def convert_query(query, full_convert):
 	result = -1
 
 	query = re.sub(r'([A-Z]{3,})', r' \1', query)
 	query = ' '.join(query.split())
 
 	try:
-		tree = jena_graph('Main', query)
-		result = gen_graph(tree[0])
+		result = jena_graph('Main', query)
+
+		if full_convert and result != -1:
+			result = gen_graph(result[0])
 	except:
 		print "gen_graph err", sys.exc_info()[0]
 	return result
@@ -31,7 +33,6 @@ def jena_graph(java_file, args):
 	'''
 	Starts Main.java in the same folder and converts it into a query tree, then into a nested list
 	'''
-
 	graph = ''
 	#Makes the call to start Main.java - gets output of file via System.out.println(string)
 	cmd = ["java", "-classpath", "/Users/David/libs/jena/lib/*:.", java_file, args]
@@ -40,19 +41,13 @@ def jena_graph(java_file, args):
 
 	for line in stdout:
 		graph += line
-	print graph
-
 	try:
-		# TODO: escape URLs containing '(' and ')'
-		graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
-
-		return graph.asList()
-
-	except ParseException as pe:
-		print "parse exception", pe
-		print "column: {}".format(pe.col)
+		res_graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
+		res_graph = res_graph.asList()
 	except:
-		print "pyparsing nestedExpr error", sys.exc_info()[0]
+		print "pyparse err", graph, args
+		res_graph = -1
+	return res_graph
 
 # def subject_selectivity(triple):
 # 	db_triple_num_s = {}
@@ -102,7 +97,6 @@ def bgp_type_match(bgp_list):
 
 def tokenize_list(nested_list, d=0):
 	if not isinstance(nested_list, list):
-		# print nested_list
 		yield nested_list, d
 	else:
 		if nested_list[0] == 'triple':
@@ -162,7 +156,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print convert_query(" PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Cityvibe> rdf:type ?type }")
+	print convert_query("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>SELECT ?label ?lat ?longFROM <http://dbpedia.org>WHERE {  <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> rdfs:label ?label . OPTIONAL { <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> wgs84_pos:lat ?lat . <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> wgs84_pos:long ?long }}", True)
 
 
 if __name__ == '__main__':

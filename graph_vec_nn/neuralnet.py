@@ -8,7 +8,7 @@ n_nodes_hl1 = 50
 n_nodes_hl2 = 40
 n_nodes_hl3 = 20
 
-x = tf.placeholder(shape=[None, 34], dtype=tf.float32)
+x = tf.placeholder(shape=[None, 39], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
 x_vals_train = np.array([], dtype='float32')
@@ -53,7 +53,7 @@ def load_data():
 			line = ast.literal_eval(line)
 			query_data.append(line)
 
-	y_vals = np.array([float(x[34])*10000 for x in query_data])
+	y_vals = np.array([float(x[39])*10000 for x in query_data])
 
 	for list in query_data:
 		del list[-1]
@@ -70,12 +70,14 @@ def load_data():
 	y_vals_train = y_vals[indices].astype('float32')
 	y_vals_test = np.delete(y_vals, indices, 0).astype('float32')
 
+	print x_vals_train
+
 	num_training_samples = x_vals_train.shape[0]
 	x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
 	x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
 def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([34,n_nodes_hl1])),
+	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([39,n_nodes_hl1])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
 	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
