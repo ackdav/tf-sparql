@@ -125,7 +125,9 @@ def gen_graph(tree):
 
 	tokenized_graph_list = list(tokenize_list(tree))
 	query_cmds['wordcount'][0] = len(tokenized_graph_list)
-
+	# print "LENGTH", len(tokenized_graph_list)
+	if len(tokenized_graph_list) <= 8:
+		return -1
 	for val, depth in tokenized_graph_list:
 		if depth > maxdepth:
 			maxdepth = depth
@@ -156,7 +158,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print convert_query("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>SELECT ?label ?lat ?longFROM <http://dbpedia.org>WHERE {  <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> rdfs:label ?label . OPTIONAL { <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> wgs84_pos:lat ?lat . <http://dbpedia.org/resource/2005_Primera_Divisi%C3%B3n_de_M%C3%A9xico_Apertura> wgs84_pos:long ?long }}", True)
+	print convert_query("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/People_of_the_Black_Mountains> rdf:type ?type }", True)
 
 
 if __name__ == '__main__':

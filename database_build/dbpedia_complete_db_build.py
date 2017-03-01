@@ -32,7 +32,7 @@ def write_db(query, time, result_size):
 		#decode url nicely into SPARQL query
 		decoded = urllib.unquote_plus(line_end_format.encode('ascii'))
 
-		query_vec = convert_query(decoded)
+		query_vec = convert_query(decoded, True)
 		if query_vec != -1:
 			query_vec.insert(len(query_vec), time)
 			# write db
