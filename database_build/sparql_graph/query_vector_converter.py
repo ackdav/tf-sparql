@@ -35,7 +35,7 @@ def jena_graph(java_file, args):
 	'''
 	graph = ''
 	#Makes the call to start Main.java - gets output of file via System.out.println(string)
-	cmd = ["java", "-classpath", "/Users/David/libs/jena/lib/*:.", java_file, args]
+	cmd = ["java", "-cp", "/Users/David/libs/jena/lib/*:.", java_file, args]
 	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = proc.communicate()
 

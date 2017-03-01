@@ -57,7 +57,7 @@ def run_log(log_file):
 	# open queries and regex for links
 	results = []
 	with open(log_file) as f:
-		pool = Pool()
+		pool = Pool(8)
 		func_partial = partial(preprocess_write_db, True)
 		results = pool.map(func_partial, f, 1)
 		# for line in f:
