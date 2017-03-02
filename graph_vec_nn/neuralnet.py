@@ -7,6 +7,7 @@ from random import sample
 n_nodes_hl1 = 0
 n_nodes_hl2 = 0
 n_nodes_hl3 = 0
+n_nodes_hl4 = 0
 
 x = tf.placeholder(shape=[None, 34], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
@@ -16,22 +17,24 @@ y_vals_train = np.array([], dtype='float32')
 x_vals_test = np.array([], dtype='float32')
 y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
-batch_size = 30
-training_epochs = 350
+batch_size = 130
+training_epochs = 400
 
 # Training loop
 loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-def setting_nodes(l1=50, l2=40, l3=30):
+def setting_nodes(l1=30, l2=22, l3=18, l4=12):
 	global n_nodes_hl1
 	global n_nodes_hl2
 	global n_nodes_hl3
+	global n_nodes_hl4
+
 	n_nodes_hl1 = l1
 	n_nodes_hl2 = l2
 	n_nodes_hl3 = l3
-
+	n_nodes_hl4 = l4
 # Normalize by column (min-max norm to be between 0 and 1)
 def normalize_cols(m):
 	col_max = m.max(axis=0)
@@ -63,7 +66,7 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.8))
+	f = int(round(l*0.6))
 	indices = sample(range(l), f)
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
@@ -82,8 +85,10 @@ def neural_net_model(data):
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
 	hidden_3_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl3]))}
+	hidden_4_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl3,n_nodes_hl4])),
+						'biases':tf.Variable(tf.random_normal([n_nodes_hl4]))}
 
-	output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl3,1])),
+	output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl4,1])),
 		'biases':tf.Variable(tf.random_normal([1]))}
 
 	l1 = tf.add(tf.matmul(data, hidden_1_layer['weights']),hidden_1_layer['biases'])
@@ -92,6 +97,9 @@ def neural_net_model(data):
 	l2 = tf.nn.relu(l2)
 	l3 = tf.add(tf.matmul(l2, hidden_3_layer['weights']),hidden_3_layer['biases'])
 	l3 = tf.nn.relu(l3)
+	l4 = tf.add(tf.matmul(l3, hidden_4_layer['weights']),hidden_4_layer['biases'])
+	l4 = tf.nn.relu(l4)
+
 
 	output = tf.matmul(l3, output_layer['weights']) + output_layer['biases']
 
@@ -101,7 +109,7 @@ def train_neural_network(x):
 	prediction = neural_net_model(x)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
-	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
+	optimizer = tf.train.AdagradOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
@@ -129,14 +137,14 @@ def train_neural_network(x):
 	 		# print ("num batch:", i)
 	 		perc_err = tf.reduce_mean((batch_y-p)/batch_y)
 			# Display logs per epoch step
-			# if epoch % 50 == 0:
-			# 	print ("Epoch:", '%04d' % (epoch+1), "cost=", \
-			# 		"{:.9f}".format(avg_cost))
-			# 	print ("[*]----------------------------")
-			# 	for i in xrange(4):
-			# 		print ("label value:", label_value[i], \
-			# 			"estimated value:", estimate[i])
-			# 	print ("[*]============================")
+			if epoch % 50 == 0:
+				print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+					"{:.9f}".format(avg_cost))
+				print ("[*]----------------------------")
+				for i in xrange(4):
+					print ("label value:", label_value[i], \
+						"estimated value:", estimate[i])
+				print ("[*]============================")
 		perc_err = tf.divide(tf.abs(\
 			tf.subtract(y, prediction)), \
 			tf.reduce_mean(y))
@@ -151,7 +159,7 @@ def train_neural_network(x):
 		rel_error = mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
 		print "relative error: ", rel_error
 		return rel_error
-		# plot_result(loss_vec, avg_cost_vec)
+		plot_result(loss_vec, avg_cost_vec)
 
 # def plot_result(loss_vec, avg_cost_vec):
 # 	# Plot loss (MSE) over time
@@ -170,15 +178,14 @@ def testscript():
 def main():
 	print "hi"
 	results = []
-	# for i in range(0, 30, 3):
-	# 	for j in range(0, 30, 3):
-	# 		for k in range(0, 30, 3):
-	# 			setting_nodes(i, j, k)
-	# 			load_data()
-	# 			rel_error = train_neural_network(x)
-	# 			sys.stdout.flush()
-	# 			# print (str(i) + '\t' + str(j) + '\t' + str(k) + '\t' + str(rel_error))
-	# 			results.append(str(i) + '\t' + str(j) + '\t' + str(k) + '\t' + str(rel_error))
+	# for i in range(10, 100, 10):
+	# 	for j in range(10, 100, 10):
+	# 		setting_nodes(j, i, 20)
+	# 		load_data()
+	# 		rel_error = train_neural_network(x)
+	# 		sys.stdout.flush()
+	# 		print (str(j) + '\t' + str(i) + '\t' + str(rel_error))
+	# 		results.append(str(i) + '\t' + str(j) + '\t'  + '\t' + str(rel_error))
 	
 	load_data()
 	train_neural_network(x)
