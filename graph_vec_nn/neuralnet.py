@@ -1,12 +1,12 @@
 import tensorflow as tf
-import re, ast
+import re, ast, sys
 import numpy as np
 from random import sample
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-n_nodes_hl1 = 50
-n_nodes_hl2 = 40
-n_nodes_hl3 = 20
+n_nodes_hl1 = 0
+n_nodes_hl2 = 0
+n_nodes_hl3 = 0
 
 x = tf.placeholder(shape=[None, 34], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
@@ -17,14 +17,14 @@ x_vals_test = np.array([], dtype='float32')
 y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
 batch_size = 30
-training_epochs = 500
+training_epochs = 350
 
 # Training loop
 loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-def setting_nodes(l1=40, l2=40, l3=20):
+def setting_nodes(l1=50, l2=40, l3=30):
 	global n_nodes_hl1
 	global n_nodes_hl2
 	global n_nodes_hl3
@@ -46,7 +46,7 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('tf-db-cold-1k.txt') as f:
+	with open('tf-db-cold.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
@@ -63,15 +63,13 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.9))
+	f = int(round(l*0.8))
 	indices = sample(range(l), f)
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
 
 	y_vals_train = y_vals[indices].astype('float32')
 	y_vals_test = np.delete(y_vals, indices, 0).astype('float32')
-
-	print x_vals_train
 
 	num_training_samples = x_vals_train.shape[0]
 	x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
@@ -131,14 +129,14 @@ def train_neural_network(x):
 	 		# print ("num batch:", i)
 	 		perc_err = tf.reduce_mean((batch_y-p)/batch_y)
 			# Display logs per epoch step
-			if epoch % 50 == 0:
-				print ("Epoch:", '%04d' % (epoch+1), "cost=", \
-					"{:.9f}".format(avg_cost))
-				print ("[*]----------------------------")
-				for i in xrange(4):
-					print ("label value:", label_value[i], \
-						"estimated value:", estimate[i])
-				print ("[*]============================")
+			# if epoch % 50 == 0:
+			# 	print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+			# 		"{:.9f}".format(avg_cost))
+			# 	print ("[*]----------------------------")
+			# 	for i in xrange(4):
+			# 		print ("label value:", label_value[i], \
+			# 			"estimated value:", estimate[i])
+			# 	print ("[*]============================")
 		perc_err = tf.divide(tf.abs(\
 			tf.subtract(y, prediction)), \
 			tf.reduce_mean(y))
@@ -148,23 +146,46 @@ def train_neural_network(x):
 		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
 
 		print "Test accuracy: {:.3f}".format(accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
-		print "relative error: ",mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
-		plot_result(loss_vec, avg_cost_vec)
+		# _, c, p = sess.run([optimizer, mean_relative_error, prediction], feed_dict={x: x_vals_test, y: np.transpose([y_vals_test])})
+		# print _, c, p 
+		rel_error = mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
+		print "relative error: ", rel_error
+		return rel_error
+		# plot_result(loss_vec, avg_cost_vec)
 
-def plot_result(loss_vec, avg_cost_vec):
-	# Plot loss (MSE) over time
-	plt.plot(loss_vec, 'k-', label='Train Loss')
-	plt.plot(avg_cost_vec, 'r--', label='Test Loss')
-	plt.title('Loss (MSE) per Generation')
-	plt.xlabel('Generation')
-	plt.ylabel('Loss')
-	plt.show()
+# def plot_result(loss_vec, avg_cost_vec):
+# 	# Plot loss (MSE) over time
+# 	plt.plot(loss_vec, 'k-', label='Train Loss')
+# 	plt.plot(avg_cost_vec, 'r--', label='Test Loss')
+# 	plt.title('Loss (MSE) per Generation')
+# 	plt.xlabel('Generation')
+# 	plt.ylabel('Loss')
+# 	plt.show()
 
-def main():
-	print "hi"
+def testscript():
 	setting_nodes()
 	load_data()
 	train_neural_network(x)
+
+def main():
+	print "hi"
+	results = []
+	# for i in range(0, 30, 3):
+	# 	for j in range(0, 30, 3):
+	# 		for k in range(0, 30, 3):
+	# 			setting_nodes(i, j, k)
+	# 			load_data()
+	# 			rel_error = train_neural_network(x)
+	# 			sys.stdout.flush()
+	# 			# print (str(i) + '\t' + str(j) + '\t' + str(k) + '\t' + str(rel_error))
+	# 			results.append(str(i) + '\t' + str(j) + '\t' + str(k) + '\t' + str(rel_error))
+	
+	load_data()
+	train_neural_network(x)
+	
+	# with open('res', 'a') as out:
+	# 	for _ in results:
+	# 		out.write(_)
 
 if __name__ == '__main__':
 	main()
