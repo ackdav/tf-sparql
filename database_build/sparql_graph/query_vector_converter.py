@@ -1,12 +1,10 @@
 '''
 Executes Main.java in the same directory and prints it out
 '''
-import subprocess, re, os.path, sys, collections
+import subprocess, re, sys, collections
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
-from pprint import pprint
 from collections import defaultdict
-
 
 # def compile_java(java_file):
 # 	cmd = ["javac", "-classpath", '/Users/David/libs/jena/lib/*:.', java_file]
@@ -14,19 +12,21 @@ from collections import defaultdict
 # 	stdout, stderr = proc.communicate()
 # executes Main.java in same folder to convert to SPARQL Algebra expressino
 
+def clean_query(query):
+	query = re.sub(r'([A-Z]{3,})', r' \1', query)
+	query = ' '.join(query.split())
+	return query
+
 def convert_query(query, full_convert):
 	result = -1
 
-	query = re.sub(r'([A-Z]{3,})', r' \1', query)
-	query = ' '.join(query.split())
-
 	try:
 		result = jena_graph('Main', query)
-
 		if full_convert and result != -1:
-			result = gen_graph(result[0])
+			result = query_vector_converter(result[0])
 	except:
-		print "gen_graph err", sys.exc_info()[0]
+		print "query_vector_converter err", sys.exc_info()[0]
+		return -1
 	return result
 
 def jena_graph(java_file, args):
@@ -41,6 +41,7 @@ def jena_graph(java_file, args):
 
 	for line in stdout:
 		graph += line
+
 	try:
 		res_graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
 		res_graph = res_graph.asList()
@@ -110,7 +111,7 @@ def tokenize_list(nested_list, d=0):
 	return
 
 
-def gen_graph(tree):
+def query_vector_converter(tree):
 	'''
 	query_cmds def per index:
 	1. number of occurences

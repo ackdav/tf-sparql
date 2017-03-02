@@ -4,7 +4,7 @@ from multiprocessing.dummy import Pool
 from functools import partial
 
 
-from sparql_graph.query_vector_converter import convert_query, jena_graph
+from sparql_graph.query_vector_converter import *
 from tree_edit_distance import get_distances
 
 ged_samples = []
@@ -45,6 +45,7 @@ def preprocess_write_db(full_convert, line):
 	strip = strip.replace('"', '\\"')
 	split = strip.split('\t')
 	query = split[0]
+	query = clean_query(query)
 	time = split[1]
 	result_size = split[2]
 	query_vec = write_db(query, time, full_convert)

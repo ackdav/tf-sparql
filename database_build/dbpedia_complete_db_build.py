@@ -64,7 +64,7 @@ def run_log(log_file):
 			print '.',
 
 def main():
-	run_log('log20k.log')
+	run_log('log100k.log')
 
 
 if __name__ == '__main__':
