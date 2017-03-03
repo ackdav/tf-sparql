@@ -17,15 +17,15 @@ y_vals_train = np.array([], dtype='float32')
 x_vals_test = np.array([], dtype='float32')
 y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
-batch_size = 130
-training_epochs = 400
+batch_size = 100
+training_epochs = 300
 
 # Training loop
 loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-def setting_nodes(l1=30, l2=22, l3=18, l4=12):
+def setting_nodes(l1=100, l2=50, l3=38, l4=12):
 	global n_nodes_hl1
 	global n_nodes_hl2
 	global n_nodes_hl3
@@ -49,7 +49,7 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('tf-db-cold.txt') as f:
+	with open('verycomp.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
@@ -66,7 +66,7 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.6))
+	f = int(round(l*0.8))
 	indices = sample(range(l), f)
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
@@ -108,7 +108,7 @@ def neural_net_model(data):
 def train_neural_network(x):
 	prediction = neural_net_model(x)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
-	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
+
 	optimizer = tf.train.AdagradOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
@@ -154,21 +154,19 @@ def train_neural_network(x):
 		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), y_vals_test.shape[0])
 
 		print "Test accuracy: {:.3f}".format(accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
-		# _, c, p = sess.run([optimizer, mean_relative_error, prediction], feed_dict={x: x_vals_test, y: np.transpose([y_vals_test])})
-		# print _, c, p 
 		rel_error = mean_relative_error.eval({x: x_vals_test, y: np.transpose([y_vals_test])})
 		print "relative error: ", rel_error
 		return rel_error
 		plot_result(loss_vec, avg_cost_vec)
 
-# def plot_result(loss_vec, avg_cost_vec):
-# 	# Plot loss (MSE) over time
-# 	plt.plot(loss_vec, 'k-', label='Train Loss')
-# 	plt.plot(avg_cost_vec, 'r--', label='Test Loss')
-# 	plt.title('Loss (MSE) per Generation')
-# 	plt.xlabel('Generation')
-# 	plt.ylabel('Loss')
-# 	plt.show()
+def plot_result(loss_vec, avg_cost_vec):
+	# Plot loss (MSE) over time
+	plt.plot(loss_vec, 'k-', label='Train Loss')
+	plt.plot(avg_cost_vec, 'r--', label='Test Loss')
+	plt.title('Loss (MSE) per Generation')
+	plt.xlabel('Generation')
+	plt.ylabel('Loss')
+	plt.show()
 
 def testscript():
 	setting_nodes()
