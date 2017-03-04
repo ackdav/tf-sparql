@@ -5,8 +5,6 @@ import re, sys, requests, time
 from urlparse import urlparse, parse_qs
 import urllib
 
-from sparql_graph.query_vector_converter import convert_query
-
 fallback_json = { "head": { "link": [], "vars": ["property", "propertyLabel", "propertyVal", "propertyValLabel"] },
   "results": { "distinct": False, "ordered": True, "bindings": [ ] } }
 
@@ -32,12 +30,9 @@ def write_db(query, time, result_size):
 		#decode url nicely into SPARQL query
 		decoded = urllib.unquote_plus(line_end_format.encode('ascii'))
 
-		query_vec = convert_query(decoded, True)
-		if query_vec != -1:
-			query_vec.insert(len(query_vec), time)
-			# write db
-			f.write(decoded + '\t' + str(query_vec) + '\t' + str(time) + '\t' + str(result_size) + '\n')
-			print 'wrote query '
+		# write db
+		f.write(decoded + '\t' + '\t' + str(time) + '\t' + str(result_size) + '\n')
+		print 'wrote query '
 
 def run_log(log_file):
 	# open queries and regex for links

@@ -12,18 +12,17 @@ from collections import defaultdict
 # 	stdout, stderr = proc.communicate()
 # executes Main.java in same folder to convert to SPARQL Algebra expressino
 
-def clean_query(query):
-	query = re.sub(r'([A-Z]{3,})', r' \1', query)
-	query = ' '.join(query.split())
-	return query
+# def clean_query(query):
+# 	query = re.sub(r'([A-Z]{3,})', r' \1', query)
+# 	query = ' '.join(query.split())
+# 	return query
 
-def convert_query(query, full_convert):
+def structural_query_vector(query):
 	result = -1
 
 	try:
 		result = jena_graph('Main', query)
-		if full_convert and result != -1:
-			result = query_vector_converter(result[0])
+		result = query_vector_converter(result[0])
 	except:
 		print "query_vector_converter err", sys.exc_info()[0]
 		return -1
@@ -127,8 +126,9 @@ def query_vector_converter(tree):
 	tokenized_graph_list = list(tokenize_list(tree))
 	query_cmds['wordcount'][0] = len(tokenized_graph_list)
 	# print "LENGTH", len(tokenized_graph_list)
-	if len(tokenized_graph_list) <= 8:
-		return -1
+	# TEST: test structural feature effectiveness
+	# if len(tokenized_graph_list) <= 8:
+	# 	return -1
 	for val, depth in tokenized_graph_list:
 		if depth > maxdepth:
 			maxdepth = depth

@@ -5,7 +5,7 @@ from functools import partial
 
 
 from sparql_graph.query_vector_converter import *
-from tree_edit_distance import get_distances
+from graph_edit_distance import get_distances
 
 ged_samples = []
 
@@ -20,8 +20,7 @@ def ged_sample(log_file, number):
 
 
 def ged_distance(query):
-	jena_query = jena_graph('Main', query)
-	return get_distances(jena_query, ged_samples)
+	return get_distances(query, ged_samples)
 
 def write_db(query, time, full_convert):
 	query_vec = convert_query(query, full_convert)
@@ -58,7 +57,7 @@ def run_log(log_file):
 	# open queries and regex for links
 	results = []
 	with open(log_file) as f:
-		pool = Pool(8)
+		pool = Pool(1)
 		func_partial = partial(preprocess_write_db, True)
 		results = pool.map(func_partial, f, 1)
 		# for line in f:
@@ -70,7 +69,7 @@ def run_log(log_file):
 def main():
 	ged_sample('db-cold-novec-200.txt', 5)
 	# print sample
-	run_log('db-cold-novec-200.txt')
+	# run_log('db-cold-novec-200.txt')
 
 if __name__ == '__main__':
 	main()
