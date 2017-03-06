@@ -69,7 +69,7 @@ def gen_query_vectors(log_file):
 def main():
 	print "hi"
 	log_file = 'db-cold-novec-1k.txt'
-	ged_samples = prepare_ged_benchmark_queries(log_file, 8) # EXPAND
+	ged_samples = prepare_ged_benchmark_queries(log_file, 14) # EXPAND
 	gen_query_vectors(log_file)
 
 if __name__ == '__main__':

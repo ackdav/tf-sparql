@@ -9,8 +9,8 @@ n_nodes_hl2 = 0
 n_nodes_hl3 = 0
 n_nodes_hl4 = 0
 
-x = tf.placeholder(shape=[None, 49], dtype=tf.float32)
-y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
+x = tf.placeholder('float', [None, 66])
+y = tf.placeholder('float', [None])
 
 x_vals_train = np.array([], dtype='float32')
 y_vals_train = np.array([], dtype='float32')
@@ -49,7 +49,7 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('tf-db-cold-ged.txt') as f:
+	with open('db-cold-novec-1k.txt-out') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
@@ -57,7 +57,7 @@ def load_data():
 			# line[-1] = str(line[-1])
 			query_data.append(line)
 
-	y_vals = np.array([ float(x[49]) for x in query_data])
+	y_vals = np.array([ float(x[66]) for x in query_data])
 
 	for l_ in query_data:
 		del l_[-1]
@@ -66,8 +66,11 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.75))
+	f = int(round(l*0.8))
 	indices = sample(range(l), f)
+	with open('shit.txt', 'a') as out:
+		for x in x_vals:
+			out.write(str(x) + '\n')
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
 
@@ -79,7 +82,7 @@ def load_data():
 	x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
 def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([49,n_nodes_hl1])),
+	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([66,n_nodes_hl1])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
 	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
@@ -101,7 +104,7 @@ def neural_net_model(data):
 	l4 = tf.nn.relu(l4)
 
 
-	output = tf.matmul(l3, output_layer['weights']) + output_layer['biases']
+	output = tf.matmul(l4, output_layer['weights']) + output_layer['biases']
 
 	return output
 
@@ -109,7 +112,7 @@ def train_neural_network(x):
 	prediction = neural_net_model(x)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 
-	optimizer = tf.train.AdagradOptimizer(0.01).minimize(cost)
+	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
@@ -121,10 +124,10 @@ def train_neural_network(x):
 			for i in range(total_batch-1):
 				batch_x = x_vals_train[i*batch_size:(i+1)*batch_size]
 				batch_y = y_vals_train[i*batch_size:(i+1)*batch_size]
-
 				# Run optimization op (backprop) and cost op (to get loss value)
 				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
-    			                                          y: np.transpose([batch_y])})
+    			                                          y: y_vals_test})
+				# print p
 				loss_vec.append(c)
 				# Compute average loss
 				avg_cost += c / total_batch
@@ -134,7 +137,6 @@ def train_neural_network(x):
 	 		label_value = batch_y
 	 		estimate = p
 	 		err = label_value-estimate
-	 		# print ("num batch:", i)
 	 		perc_err = tf.reduce_mean((batch_y-p)/batch_y)
 			# Display logs per epoch step
 			if epoch % 50 == 0:
