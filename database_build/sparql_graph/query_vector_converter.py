@@ -22,9 +22,9 @@ def structural_query_vector(query):
 
 	try:
 		result = jena_graph('Main', query)
-		result = query_vector_converter(result[0])
+		result = algebra_structure_feature_vector(result[0])
 	except:
-		print "query_vector_converter err", sys.exc_info()[0]
+		print "algebra_structure_feature_vector err", sys.exc_info()[0]
 		return -1
 	return result
 
@@ -48,23 +48,6 @@ def jena_graph(java_file, args):
 		print "pyparse err", graph, args
 		res_graph = -1
 	return res_graph
-
-# def subject_selectivity(triple):
-# 	db_triple_num_s = {}
-# 	total_triples = 458315769
-
-# 	with open('db-triple-subject-count.txt') as f:
-# 		for line in f:
-# 			line = line.split('\t')
-# 			db_triple_num_s[line[1].strip('\n')] = line[0]
-
-# 	if triple[1][0] != '?':
-# 		if triple[1][1:-1] in db_triple_num_s:
-# 			print 'XXXXX'
-# 			print ('subject_selectivity', float(db_triple_num_s[triple[1][1:-1]]/total_triples))
-
-# 	else:
-# 		return ('subject_selectivity', -1)
 
 
 def bgp_type_match(bgp_list):
@@ -109,8 +92,10 @@ def tokenize_list(nested_list, d=0):
 				yield x
 	return
 
+def sparql_structure_feature_vector(query):
+	print "hi"
 
-def query_vector_converter(tree):
+def algebra_structure_feature_vector(tree):
 	'''
 	query_cmds def per index:
 	1. number of occurences
@@ -119,9 +104,10 @@ def query_vector_converter(tree):
 	'''
 	maxdepth = 0
 	query_cmds = {'maxdepth': [0], 'wordcount': [0],\
-					 'union': [0,0,0], 'project':[0,0,0], 'bgp':[0,0,0], 'triple':[0,0,0], \
-						'distinct': [0,0,0], 'order': [0,0,0], 'leftjoin':[0,0,0], 'filter': [0,0,0],\
-					 		'bgptype':[0,0,0,0,0,0,0,0]}
+					 'triple': [0,0,0], 'bgp':[0,0,0], 'leftjoin':[0,0,0], 'union':[0,0,0], \
+						'tolist': [0,0,0], 'order': [0,0,0], 'project':[0,0,0], 'distinct': [0,0,0],\
+						'reduced': [0,0,0], 'multi': [0,0,0], 'top':[0,0,0], 'group': [0,0,0], \
+							'assign': [0,0,0], 'sequence':[0,0,0], 'bgptype':[0,0,0,0,0,0,0,0] }
 
 	tokenized_graph_list = list(tokenize_list(tree))
 	query_cmds['wordcount'][0] = len(tokenized_graph_list)
@@ -159,7 +145,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print convert_query("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/People_of_the_Black_Mountains> rdf:type ?type }", True)
+	print structural_query_vector("SELECT*{{<http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness> ?po ?x} UNION{?x ?pi <http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness>}} ORDER BY ?pi ?po ?x")
 
 
 if __name__ == '__main__':

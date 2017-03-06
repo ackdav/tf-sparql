@@ -17,7 +17,7 @@ y_vals_train = np.array([], dtype='float32')
 x_vals_test = np.array([], dtype='float32')
 y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
-batch_size = 30
+batch_size = 80
 training_epochs = 400
 
 # Training loop
@@ -66,7 +66,7 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.7))
+	f = int(round(l*0.75))
 	indices = sample(range(l), f)
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
