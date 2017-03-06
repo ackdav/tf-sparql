@@ -9,7 +9,7 @@ n_nodes_hl2 = 0
 n_nodes_hl3 = 0
 n_nodes_hl4 = 0
 
-x = tf.placeholder(shape=[None, 34], dtype=tf.float32)
+x = tf.placeholder(shape=[None, 49], dtype=tf.float32)
 y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
 x_vals_train = np.array([], dtype='float32')
@@ -17,15 +17,15 @@ y_vals_train = np.array([], dtype='float32')
 x_vals_test = np.array([], dtype='float32')
 y_vals_test = np.array([], dtype='float32')
 num_training_samples = 0
-batch_size = 100
-training_epochs = 300
+batch_size = 30
+training_epochs = 400
 
 # Training loop
 loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-def setting_nodes(l1=100, l2=50, l3=38, l4=12):
+def setting_nodes(l1=100, l2=80, l3=70, l4=60):
 	global n_nodes_hl1
 	global n_nodes_hl2
 	global n_nodes_hl3
@@ -49,7 +49,7 @@ def load_data():
 	global x_vals_train
 	global num_training_samples
 
-	with open('verycomp.txt') as f:
+	with open('tf-db-cold-ged.txt') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
@@ -57,7 +57,7 @@ def load_data():
 			# line[-1] = str(line[-1])
 			query_data.append(line)
 
-	y_vals = np.array([ float(x[34]) for x in query_data])
+	y_vals = np.array([ float(x[49]) for x in query_data])
 
 	for l_ in query_data:
 		del l_[-1]
@@ -66,7 +66,7 @@ def load_data():
 
 	# split into test and train 
 	l = len(x_vals)
-	f = int(round(l*0.8))
+	f = int(round(l*0.7))
 	indices = sample(range(l), f)
 	x_vals_train = x_vals[indices].astype('float32')
 	x_vals_test = np.delete(x_vals, indices, 0).astype('float32')
@@ -79,7 +79,7 @@ def load_data():
 	x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 
 def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([34,n_nodes_hl1])),
+	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([49,n_nodes_hl1])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
 	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}

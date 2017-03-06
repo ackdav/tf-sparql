@@ -1,24 +1,32 @@
 import  sys
 from subprocess import STDOUT,PIPE,Popen
 
+def add_missing_prefixes(query):
+    with open('jena-missing-prefixes.txt') as f:
+        for prefix in f:
+            query = prefix + " " + query
+    return query
+
 def get_distances(query, query_list):
     distances = []
+    query = add_missing_prefixes(query)
     for benchmark_query in query_list:
     	try:
-            cmd = ["/Users/David/Documents/ged-wrap/scripts/qdistance-beam", "--std", query, benchmark_query, "--beam 500"]
-            print cmd
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            benchmark_query = add_missing_prefixes(benchmark_query)
+            cmd = ["/Users/David/Documents/ged-wrap/scripts/qdistance-beam --std \"%s\" \"%s\" --beam 300" % (query, benchmark_query)]
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
             stdout, stderr = proc.communicate()
-            print stdout
             if not 'help' in stdout:
                 distances.append(float(stdout))
         except:
-			print "GED err", sys.exc_info()[0], query
+            distances.append(0.0)
+            # print "GED err", sys.exc_info()[0]
+
     return distances
 
 def main():
-    C = "CONSTRUCT { <http://dbpedia.org/resource/Saif_Salman> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . <http://dbpedia.org/resource/Saif_Salman> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . }WHERE { { <http://dbpedia.org/resource/Saif_Salman> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . } UNION { <http://dbpedia.org/resource/Saif_Salman> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . } }"
-    D = ["CONSTRUCT { <http://dbpedia.org/resource/Saif_Salman> ?p1 ?x2 . <http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/genre> ?x3 . ?x3 <http://www.w3.org/2000/01/rdf-schema#label> ?x4 . <http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/party> ?x5 . ?x5 <http://www.w3.org/2000/01/rdf-schema#label> ?x6 . <http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/birthPlace> ?x7 . ?x7 <http://www.w3.org/2000/01/rdf-schema#label> ?x8 . }WHERE { { <http://dbpedia.org/resource/Saif_Salman> ?p1 ?x2 . } UNION { {<http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/genre> ?x3 . ?x3 <http://www.w3.org/2000/01/rdf-schema#label> ?x4 . } } UNION { {<http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/party> ?x5 . ?x5 <http://www.w3.org/2000/01/rdf-schema#label> ?x6 . } } UNION { {<http://dbpedia.org/resource/Saif_Salman> <http://dbpedia.org/ontology/birthPlace> ?x7 . ?x7 <http://www.w3.org/2000/01/rdf-schema#label> ?x8 . } } }"]
+    C = "DESCRIBE <http://dbpedia.org/resource/Beaudesert,_Queensland>"
+    D = ["SELECT ?v WHERE {  <http://dbpedia.org/resource/Connecticut> <http://dbpedia.org/property/governor> ?v . } LIMIT 1", "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT * WHERE { ?city a <http://dbpedia.org/ontology/Place>; rdfs:label 'Madrid'@en.  ?airport a <http://dbpedia.org/ontology/Airport>. {?airport <http://dbpedia.org/ontology/city> ?city} UNION {?airport <http://dbpedia.org/ontology/location> ?city} UNION {?airport <http://dbpedia.org/property/cityServed> ?city.} UNION {?airport <http://dbpedia.org/ontology/city> ?city. }{?airport <http://dbpedia.org/property/iata> ?iata.} UNION  {?airport <http://dbpedia.org/ontology/iataLocationIdentifier> ?iata. } OPTIONAL { ?airport foaf:homepage ?airport_home. } OPTIONAL { ?airport rdfs:label ?name. } OPTIONAL { ?airport <http://dbpedia.org/property/nativename> ?airport_name.} FILTER ( !bound(?name) || langMatches( lang(?name), 'en') )}"]
     print get_distances(C, D)
 
 if __name__ == '__main__':
