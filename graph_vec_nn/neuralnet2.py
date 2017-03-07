@@ -1,28 +1,42 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import tensorflow as tf
 import re, ast
-import numpy as np
 from random import sample
+from tensorflow.contrib import learn
 import matplotlib.pyplot as plt
 
-n_nodes_hl1 = 80
-n_nodes_hl2 = 70
-n_nodes_hl3 = 64
+from sklearn.pipeline import Pipeline
+from sklearn import datasets, linear_model
+from sklearn import cross_validation
+import numpy as np
 
-x = tf.placeholder(shape=[None, 66], dtype=tf.float32)
-y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
 
-x_vals_train = np.array([])
-y_vals_train = np.array([])
-x_vals_test = np.array([])
-y_vals_test = np.array([])
-num_training_samples = 0
+
+X_train = np.array([], dtype='float32')
+Y_test = np.array([], dtype='float32')
+X_test = np.array([], dtype='float32')
+Y_train = np.array([], dtype='float32')
+
+# Parameters
+learning_rate = 0.001
+training_epochs = 500
 batch_size = 10
-training_epochs = 200
+display_step = 1
+dropout_rate = 0.9
+# Network Parameters
+n_hidden_1 = 32 # 1st layer number of features
+n_hidden_2 = 200 # 2nd layer number of features
+n_hidden_3 = 200
+n_hidden_4 = 256
 
-# Training loop
-loss_vec = []
-test_loss = []
+n_classes = 1
 
+# tf Graph input
+x = tf.placeholder("float", [None, 66])
+y = tf.placeholder("float", [None,1])
 # Normalize by column (min-max norm to be between 0 and 1)
 def normalize_cols(m):
 	col_max = m.max(axis=0)
@@ -31,10 +45,10 @@ def normalize_cols(m):
 
 def load_data():
 	query_data = []
-	global y_vals_test
-	global x_vals_test
-	global y_vals_train
-	global x_vals_train
+	global Y_train
+	global X_test
+	global Y_test
+	global X_train
 	global num_training_samples
 
 	with open('db-cold-novec-1k.txt-out') as f:
@@ -42,12 +56,13 @@ def load_data():
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
 			line = ast.literal_eval(line)
+			# line[-1] = str(line[-1])
 			query_data.append(line)
 
-	y_vals = np.array([x[66] for x in query_data])
+	y_vals = np.array([ float(x[66])*1000 for x in query_data])
 
-	for list in query_data:
-		del list[-1]
+	for l_ in query_data:
+		del l_[-1]
 
 	x_vals = np.array(query_data)
 
@@ -55,98 +70,111 @@ def load_data():
 	l = len(x_vals)
 	f = int(round(l*0.8))
 	indices = sample(range(l), f)
-	x_vals_train = x_vals[indices]
-	x_vals_test = np.delete(x_vals, indices, 0)
+	# with open('shit.txt', 'a') as out:
+	# 	for x in x_vals:
+	# 		out.write(str(x) + '\n')
+	X_train = x_vals[indices].astype('float32')
+	X_test = np.delete(x_vals, indices, 0).astype('float32')
 
-	y_vals_train = y_vals[indices]
-	y_vals_test = np.delete(y_vals, indices, 0)
+	y_vals = np.transpose([y_vals])
+	Y_train = y_vals[indices].astype('float32')
+	Y_train = np.delete(y_vals, indices, 0).astype('float32')
 
-	num_training_samples = x_vals_train.shape[0]
-	# x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
-	# x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
+	num_training_samples = X_train.shape[0]
+	X_train = np.nan_to_num(normalize_cols(X_train))
+	X_test = np.nan_to_num(normalize_cols(X_test))
 
-def neural_net_model(data):
-	hidden_1_layer = {'weights':tf.Variable(tf.random_normal([66,n_nodes_hl1])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl1]))}
-	hidden_2_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl1,n_nodes_hl2])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
-	hidden_3_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
-						'biases':tf.Variable(tf.random_normal([n_nodes_hl3]))}
+load_data()
+n_input = 66
+total_len = X_train.shape[0]
+# Create model
+def multilayer_perceptron(x, weights, biases):
+    # Hidden layer with RELU activation
+    layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
+    layer_1 = tf.nn.relu(layer_1)
 
-	output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl3,1])),
-		'biases':tf.Variable(tf.random_normal([1]))}
+    # Hidden layer with RELU activation
+    layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+    layer_2 = tf.nn.relu(layer_2)
 
-	l1 = tf.add(tf.matmul(data, hidden_1_layer['weights']),hidden_1_layer['biases'])
-	l1 = tf.nn.relu(l1)
-	l2 = tf.add(tf.matmul(l1, hidden_2_layer['weights']),hidden_2_layer['biases'])
-	l2 = tf.nn.relu(l2)
-	l3 = tf.add(tf.matmul(l2, hidden_3_layer['weights']),hidden_3_layer['biases'])
-	l3 = tf.nn.relu(l3)
+    # Hidden layer with RELU activation
+    layer_3 = tf.add(tf.matmul(layer_2, weights['h3']), biases['b3'])
+    layer_3 = tf.nn.relu(layer_3)
 
-	output = tf.matmul(l3, output_layer['weights']) + output_layer['biases']
+    # Hidden layer with RELU activation
+    layer_4 = tf.add(tf.matmul(layer_3, weights['h4']), biases['b4'])
+    layer_4 = tf.nn.relu(layer_4)
 
-	return output
+    # Output layer with linear activation
+    out_layer = tf.matmul(layer_4, weights['out']) + biases['out']
+    return out_layer
 
-def train_neural_network(x):
-	prediction = neural_net_model(x)
-	sig = tf.sigmoid(prediction)
-	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
-	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(x_vals_train))
-	# cost = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits(prediction,y))
-	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
+# Store layers weight & bias
+weights = {
+    'h1': tf.Variable(tf.random_normal([n_input, n_hidden_1], 0, 0.1)),
+    'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], 0, 0.1)),
+    'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3], 0, 0.1)),
+    'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4], 0, 0.1)),
+    'out': tf.Variable(tf.random_normal([n_hidden_4, n_classes], 0, 0.1))
+}
+biases = {
+    'b1': tf.Variable(tf.random_normal([n_hidden_1], 0, 0.1)),
+    'b2': tf.Variable(tf.random_normal([n_hidden_2], 0, 0.1)),
+    'b3': tf.Variable(tf.random_normal([n_hidden_3], 0, 0.1)),
+    'b4': tf.Variable(tf.random_normal([n_hidden_4], 0, 0.1)),
+    'out': tf.Variable(tf.random_normal([n_classes], 0, 0.1))
+}
 
-	with tf.Session() as sess:
-		sess.run(tf.global_variables_initializer())
-		for epoch in range(training_epochs):
-			temp_loss = 0
-			avg_cost = 0.
-			total_batch = int(round(num_training_samples/batch_size))
-			for i in range(total_batch-1):
-				batch_x = x_vals_train[i*batch_size:(i+1)*batch_size]
-				batch_y = y_vals_train[i*batch_size:(i+1)*batch_size]
-				# Run optimization op (backprop) and cost op (to get loss value)
-				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
-    			                                          y: np.transpose([batch_y])})
-				loss_vec.append(temp_loss)
-				# Compute average loss
-				avg_cost += c / total_batch
+# Construct model
+pred = multilayer_perceptron(x, weights, biases)
+print (X_train )
+# Define loss and optimizer
+# cost = tf.reduce_mean(tf.square(tf.subtract(pred,y)))
+cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, pred))))
 
-			# sample prediction
-	 		label_value = batch_y
-	 		estimate = p
-	 		err = label_value-estimate
-	 		# print ("num batch:", i)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-			# Display logs per epoch step
-			if epoch % 50 == 0:
-				print ("Epoch:", '%04d' % (epoch+1), "cost=", \
-					"{:.9f}".format(avg_cost))
-				print ("[*]----------------------------")
-				for i in xrange(3):
-					print ("label value:", label_value[i], \
-						"estimated value:", estimate[i])
-				print ("[*]============================")
+# Launch the graph
+with tf.Session() as sess:
+    sess.run(tf.initialize_all_variables())
 
-		correct_prediction = tf.equal(tf.round(tf.clip_by_value(prediction,0,1)), y)
-		correct_prediction = tf.Print(correct_prediction, [correct_prediction])
-		accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    # Training cycle
+    for epoch in range(training_epochs):
+        avg_cost = 0.
+        total_batch = int(total_len/batch_size)
+        # Loop over all batches
 
-		print('Accuracy:', accuracy.eval({x: x_vals_test, y: np.transpose([y_vals_test])}))
+        for i in range(total_batch-1):
+            batch_x = X_train[i*batch_size:(i+1)*batch_size]
+            batch_y = Y_train[i*batch_size:(i+1)*batch_size]
+            # print (Y_train.shape)
+            # Run optimization op (backprop) and cost op (to get loss value)
+            _, c, p = sess.run([optimizer, cost, pred], feed_dict={x: batch_x,
+                                                          y: batch_y})
+            # print (batch_y.shape)
+            # Compute average loss
+            avg_cost += c / total_batch
 
-def plot_result(loss_vec, test_loss):
-	# Plot loss (MSE) over time
-	plt.plot(loss_vec, 'k-', label='Train Loss')
-	plt.plot(test_loss, 'r--', label='Test Loss')
-	plt.title('Loss (MSE) per Generation')
-	plt.xlabel('Generation')
-	plt.ylabel('Loss')
-	plt.show()
+        # sample prediction
+        label_value = batch_y
+        estimate = p
+        err = label_value-estimate
+        print ("num batch:", total_batch)
 
-def main():
-	print "hi"
-	load_data()
-	print x
-	train_neural_network(x)
+        # Display logs per epoch step
+        if epoch % display_step == 0:
+            print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+                "{:.9f}".format(avg_cost))
+            print ("[*]----------------------------")
+            for i in xrange(3):
+                print ("label value:", label_value[i], \
+                    "estimated value:", estimate[i])
+            print ("[*]============================")
 
-if __name__ == '__main__':
-	main()
+    print ("Optimization Finished!")
+
+    # Test model
+    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+    # Calculate accuracy
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    print ("Accuracy:", accuracy.eval({x: X_test, y: Y_test}))
