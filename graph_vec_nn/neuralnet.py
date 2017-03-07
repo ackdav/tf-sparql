@@ -68,9 +68,7 @@ def load_data():
 	l = len(x_vals)
 	f = int(round(l*0.8))
 	indices = sample(range(l), f)
-	# with open('shit.txt', 'a') as out:
-	# 	for x in x_vals:
-	# 		out.write(str(x) + '\n')
+
 	X_train = x_vals[indices].astype('float32')
 	X_test = np.delete(x_vals, indices, 0).astype('float32')
 
@@ -89,7 +87,6 @@ def neural_net_model(data):
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl2]))}
 	hidden_3_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl2,n_nodes_hl3])),
 						'biases':tf.Variable(tf.random_normal([n_nodes_hl3]))}
-
 	output_layer = {'weights':tf.Variable(tf.random_normal([n_nodes_hl3,1])),
 		'biases':tf.Variable(tf.random_normal([1]))}
 
@@ -170,22 +167,8 @@ def testscript():
 
 def main():
 	print "hi"
-	results = []
-	# for i in range(10, 100, 10):
-	# 	for j in range(10, 100, 10):
-	# 		setting_nodes(j, i, 20)
-	# 		load_data()
-	# 		rel_error = train_neural_network(x)
-	# 		sys.stdout.flush()
-	# 		print (str(j) + '\t' + str(i) + '\t' + str(rel_error))
-	# 		results.append(str(i) + '\t' + str(j) + '\t'  + '\t' + str(rel_error))
-	
 	load_data()
 	train_neural_network(x)
-	
-	# with open('res', 'a') as out:
-	# 	for _ in results:
-	# 		out.write(_)
 
 if __name__ == '__main__':
 	main()
