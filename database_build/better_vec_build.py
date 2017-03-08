@@ -1,5 +1,5 @@
 import re, sys, requests, time, random
-from multiprocessing.dummy import Pool 
+from multiprocessing.dummy import Pool
 from functools import partial
 from itertools import islice
 
@@ -15,10 +15,10 @@ def clean_query_helper(query):
 	split = strip.split('\t')
 	query = split[0]
 	#insert spaces before sparql cmds
-	query = re.sub(r'([A-Z]{3,})', r' \1', query) 
+	query = re.sub(r'([A-Z]{3,})', r' \1', query)
 	query = ' '.join(query.split())
 	time = split[1]
-	result_size = split[2]	
+	result_size = split[2]
 	return (query, time, result_size)
 
 def prepare_ged_benchmark_queries(log_file, num_bench):
@@ -68,7 +68,7 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = 'db-cold-novec-1k.txt'
+	log_file = './db-cold-novec-200.txt'
 	ged_samples = prepare_ged_benchmark_queries(log_file, 14) # EXPAND
 	gen_query_vectors(log_file)
 

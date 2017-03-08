@@ -19,7 +19,7 @@ def get_distances(query, query_list):
             if not 'help' in stdout:
                 distances.append(float(stdout))
         except:
-            distances.append(0.0)
+            distances.append(-1.0)
             # print "GED err", sys.exc_info()[0]
 
     return distances
