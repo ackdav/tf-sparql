@@ -1,5 +1,6 @@
 import sys, re, os.path
 from sparql_graph.query_vector_converter import jena_graph
+from graph_edit_distance import rewrite_describe_queries
 
 def extract_list(nested_list, d=0):
 	if isinstance(nested_list, list):
@@ -40,6 +41,9 @@ def property_selectivity(triple):
 		return float(occurences/total)
 
 def get_selectivity(query):
+	if 'DESCRIBE' in query:
+		query = rewrite_describe_queries(query)
+		
 	triples = extract_triples(query)
 	selectivity = []
 	if len(triples) > 0:
@@ -53,7 +57,7 @@ def get_selectivity(query):
 		return 0.0
 
 def main():
-	print get_selectivity('PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Loren_Avedon> rdf:type ?type }')
+	print get_selectivity('DESCRIBE <http://dbpedia.org/resource/Beaudesert,_Queensland>')
 
 if __name__ == '__main__':
 	main()
