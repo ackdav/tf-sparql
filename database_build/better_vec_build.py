@@ -5,6 +5,7 @@ from itertools import islice
 
 from sparql_graph.query_vector_converter import *
 from graph_edit_distance import get_distances
+from approximate_selectivity import get_selectivity
 
 ged_samples = []
 counter = 0
@@ -41,14 +42,18 @@ def convert_query_graph(line):
 	query, time, result_size = clean_query_helper(line)
 	structure_vector = structural_query_vector(query)
 	ged_distances = get_distances(query, ged_samples)
+	selectivity = get_selectivity(query)
 
 	if structure_vector != -1 and len(ged_distances)==len(ged_samples):
 		counter += 1
+
 		print counter
 		# insert time at end, if converting the db and not ged-sample-set
 
 		query_vec = structure_vector + ged_distances
+		query_vec.insert(len(query_vec), selectivity)
 		query_vec.insert(len(query_vec), time)
+		
 		# write db
 		# print '.',
 		sys.stdout.flush()
@@ -58,7 +63,7 @@ def gen_query_vectors(log_file):
 	# open queries and regex for links
 	results = []
 	with open(log_file) as f:
-		pool = Pool(4)
+		pool = Pool(5)
 		results = pool.map(convert_query_graph, f, 1)
 		# for line in f:
 		# 	results.append(preprocess_write_db(True, line))
@@ -68,8 +73,9 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = './db-cold-novec-200.txt'
-	ged_samples = prepare_ged_benchmark_queries(log_file, 14) # EXPAND
+	log_file = 'db-cold-novec-1k.txt'
+
+	ged_samples = prepare_ged_benchmark_queries(log_file, 10) # EXPAND
 	gen_query_vectors(log_file)
 
 if __name__ == '__main__':

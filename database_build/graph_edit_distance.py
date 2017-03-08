@@ -1,4 +1,4 @@
-import  sys
+import  sys, re
 from subprocess import STDOUT,PIPE,Popen
 
 def add_missing_prefixes(query):
@@ -7,11 +7,23 @@ def add_missing_prefixes(query):
             query = prefix + " " + query
     return query
 
+def rewrite_describe_queries(query):
+    uri = re.findall('DESCRIBE <(.*?)>', query)
+    query = 'CONSTRUCT  { ?subject ?predicate ?object } WHERE { ?subject ?predicate ?object . FILTER (  ?subject = <'+uri[0]+'> || ?object = <'+uri[0]+'>) }'
+    return query
+
 def get_distances(query, query_list):
     distances = []
     query = add_missing_prefixes(query)
+
+    if 'DESCRIBE' in query:
+        query = rewrite_describe_queries(query)
+
     for benchmark_query in query_list:
     	try:
+            if 'DESCRIBE' in benchmark_query:
+                benchmark_query = rewrite_describe_queries(benchmark_query)
+
             benchmark_query = add_missing_prefixes(benchmark_query)
             cmd = ["/Users/David/Documents/ged-wrap/scripts/qdistance-beam --std \"%s\" \"%s\" --beam 500" % (query, benchmark_query)]
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
@@ -25,8 +37,8 @@ def get_distances(query, query_list):
     return distances
 
 def main():
-    C = "SELECT ?v WHERE { <http://dbpedia.org/resource/Morocco> <http://dbpedia.org/property/gdpNominalYear> ?v . } LIMIT 1"
-    D = ["SELECT ?v WHERE {  <http://dbpedia.org/resource/Connecticut> <http://dbpedia.org/property/governor> ?v . } LIMIT 1", "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT * WHERE { ?city a <http://dbpedia.org/ontology/Place>; rdfs:label 'Madrid'@en.  ?airport a <http://dbpedia.org/ontology/Airport>. {?airport <http://dbpedia.org/ontology/city> ?city} UNION {?airport <http://dbpedia.org/ontology/location> ?city} UNION {?airport <http://dbpedia.org/property/cityServed> ?city.} UNION {?airport <http://dbpedia.org/ontology/city> ?city. }{?airport <http://dbpedia.org/property/iata> ?iata.} UNION  {?airport <http://dbpedia.org/ontology/iataLocationIdentifier> ?iata. } OPTIONAL { ?airport foaf:homepage ?airport_home. } OPTIONAL { ?airport rdfs:label ?name. } OPTIONAL { ?airport <http://dbpedia.org/property/nativename> ?airport_name.} FILTER ( !bound(?name) || langMatches( lang(?name), 'en') )}"]
+    C = "DESCRIBE <http://dbpedia.org/resource/abc>"
+    D = ["DESCRIBE <http://dbpedia.org/resource/Canning_Vale,_Western_Australia>"]
     print get_distances(C, D)
 
 if __name__ == '__main__':

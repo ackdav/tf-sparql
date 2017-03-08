@@ -13,15 +13,15 @@ from sklearn import cross_validation
 import numpy as np
 
 # Parameters
-learning_rate = 0.01
+learning_rate = 0.02
 training_epochs = 500
-batch_size = 50
+batch_size = 80
 display_step = 1
 # Network Parameters
-n_hidden_1 = 300 # 1st layer number of features
-n_hidden_2 = 200 # 2nd layer number of features
-n_hidden_3 = 150
-n_hidden_4 = 100
+n_hidden_1 = 100 # 1st layer number of features
+n_hidden_2 = 80 # 2nd layer number of features
+n_hidden_3 = 60
+n_hidden_4 = 40
 
 n_classes = 1
 X_train = np.array([])
@@ -29,7 +29,7 @@ Y_train = np.array([])
 X_test = np.array([])
 Y_test = np.array([])
 # tf Graph input
-x = tf.placeholder("float", [None, 66])
+x = tf.placeholder("float", [None, 62])
 y = tf.placeholder("float", [None,1])
 
 def normalize_cols(m):
@@ -50,12 +50,11 @@ def load_data():
             line = re.findall(r'\t(.*?)\t', line)
             line = unicode(line[0])
             line = ast.literal_eval(line)
-            for _ in line:
-                _ = float(_)
+
             # line[-1] = str(line[-1])
             query_data.append(line)
 
-    y_vals = np.array([ float(x[66]) for x in query_data])
+    y_vals = np.array([ float(x[62]) for x in query_data])
 
     for l_ in query_data:
         del l_[-1]
@@ -103,7 +102,7 @@ def multilayer_perceptron(x, weights, biases):
 
 # Store layers weight & bias
 weights = {
-    'h1': tf.Variable(tf.random_normal([66, n_hidden_1], 0, 0.1)),
+    'h1': tf.Variable(tf.random_normal([62, n_hidden_1], 0, 0.1)),
     'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], 0, 0.1)),
     'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3], 0, 0.1)),
     'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4], 0, 0.1)),
@@ -118,10 +117,10 @@ biases = {
 }
 
 # Construct model
-pred = multilayer_perceptron(x, weights, biases)
+prediction = multilayer_perceptron(x, weights, biases)
 # pred = np.transpose([pred])
 # Define loss and optimizer
-cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, pred))))
+cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
@@ -139,7 +138,7 @@ with tf.Session() as sess:
             batch_y = Y_train[i*batch_size:(i+1)*batch_size]
             batch_y = np.transpose([batch_y])
             # Run optimization op (backprop) and cost op (to get loss value)
-            _, c, p = sess.run([optimizer, cost, pred], feed_dict={x: batch_x, y: batch_y})
+            _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
             # Compute average loss
             avg_cost += c / total_batch
 
@@ -149,7 +148,7 @@ with tf.Session() as sess:
         err = label_value-estimate
 
         # Display logs per epoch step
-        if epoch % 2 == 0:
+        if epoch % 10 == 0:
             print ("Epoch:", '%04d' % (epoch+1), "cost=", \
                 "{:.9f}".format(avg_cost))
             print ("[*]----------------------------")
@@ -160,7 +159,7 @@ with tf.Session() as sess:
 
     print ("Optimization Finished!")
     perc_err = tf.divide(tf.abs(\
-        tf.subtract(y, pred)), \
+        tf.subtract(y, prediction)), \
         tf.reduce_mean(y))
     correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))

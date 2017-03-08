@@ -22,6 +22,7 @@ def structural_query_vector(query):
 
 	try:
 		result = jena_graph('Main', query)
+		print result
 		result = algebra_structure_feature_vector(result[0])
 	except:
 		print "algebra_structure_feature_vector err", sys.exc_info()[0]
