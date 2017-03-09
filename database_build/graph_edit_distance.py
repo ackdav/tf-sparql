@@ -27,7 +27,8 @@ def get_distances(query):
     for benchmark_query in benchmark_queries:
     	try:
             benchmark_query = add_missing_prefixes(benchmark_query)
-            cmd = ["/Users/David/Documents/ged-wrap/scripts/qdistance-beam --std \"%s\" \"%s\" --beam 500" % (query, benchmark_query)]
+            cmd = [os.path.join(os.path.dirname(__file__), "../../ged-wrap/scripts/qdistance-beam")+" --std \"%s\" \"%s\" --beam 500" % (query, benchmark_query)]
+            # print cmd
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
             stdout, stderr = proc.communicate()
             if not 'help' in stdout:

@@ -1,7 +1,7 @@
 '''
 Executes Main.java in the same directory and prints it out
 '''
-import subprocess, re, sys, collections
+import subprocess, re, sys, collections, os.path
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
 from collections import defaultdict
