@@ -29,7 +29,7 @@ Y_train = np.array([])
 X_test = np.array([])
 Y_test = np.array([])
 # tf Graph input
-x = tf.placeholder("float", [None, 62])
+x = tf.placeholder("float", [None, 63])
 y = tf.placeholder("float", [None,1])
 
 def normalize_cols(m):
@@ -45,7 +45,7 @@ def load_data():
     global X_train
     global num_training_samples
 
-    with open('db-cold-novec-1k.txt-out') as f:
+    with open('db-cold-novec-3k.txt-out') as f:
         for line in f:
             line = re.findall(r'\t(.*?)\t', line)
             line = unicode(line[0])
@@ -54,7 +54,7 @@ def load_data():
             # line[-1] = str(line[-1])
             query_data.append(line)
 
-    y_vals = np.array([ float(x[62]) for x in query_data])
+    y_vals = np.array([ float(x[63]) for x in query_data])
 
     for l_ in query_data:
         del l_[-1]
@@ -102,7 +102,7 @@ def multilayer_perceptron(x, weights, biases):
 
 # Store layers weight & bias
 weights = {
-    'h1': tf.Variable(tf.random_normal([62, n_hidden_1], 0, 0.1)),
+    'h1': tf.Variable(tf.random_normal([63, n_hidden_1], 0, 0.1)),
     'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], 0, 0.1)),
     'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3], 0, 0.1)),
     'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4], 0, 0.1)),

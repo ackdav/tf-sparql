@@ -1,4 +1,4 @@
-SELECT ?s (COUNT(?s) as ?pCount)
+SELECT ?p (COUNT(?p) as ?pCount)
 WHERE
 {
   ?s ?p ?o .

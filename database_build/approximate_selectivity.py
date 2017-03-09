@@ -51,13 +51,16 @@ def get_selectivity(query):
 			s_select = subject_selectivity(t)
 			p_select = property_selectivity(t)
 			selectivity.append(s_select * p_select)
-		return sum(selectivity)
+		prod = 1
+		for x in selectivity:
+			prod += x
+		return prod
 		
 	else:
 		return 0.0
 
 def main():
-	print get_selectivity('DESCRIBE <http://dbpedia.org/resource/Beaudesert,_Queensland>')
+	print get_selectivity('PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Andre_Delorme> rdf:type ?type }')
 
 if __name__ == '__main__':
 	main()
