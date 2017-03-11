@@ -13,15 +13,15 @@ from sklearn import cross_validation
 import numpy as np
 
 # Parameters
-learning_rate = 0.02
-training_epochs = 500
-batch_size = 80
+learning_rate = 0.001
+training_epochs = 800
+batch_size = 60
 display_step = 1
 # Network Parameters
-n_hidden_1 = 100 # 1st layer number of features
-n_hidden_2 = 80 # 2nd layer number of features
-n_hidden_3 = 60
-n_hidden_4 = 40
+n_hidden_1 = 350 # 1st layer number of features
+n_hidden_2 = 300 # 2nd layer number of features
+n_hidden_3 = 250
+n_hidden_4 = 170
 
 n_classes = 1
 X_train = np.array([])
@@ -29,7 +29,7 @@ Y_train = np.array([])
 X_test = np.array([])
 Y_test = np.array([])
 # tf Graph input
-x = tf.placeholder("float", [None, 63])
+x = tf.placeholder("float", [None, 78])
 y = tf.placeholder("float", [None,1])
 
 def normalize_cols(m):
@@ -45,16 +45,21 @@ def load_data():
     global X_train
     global num_training_samples
 
+    volume = 0.
     with open('db-cold-novec-3k.txt-out') as f:
         for line in f:
-            line = re.findall(r'\t(.*?)\t', line)
-            line = unicode(line[0])
-            line = ast.literal_eval(line)
-
+            line1 = re.findall(r'\t(.*?)\t', line)
+            volume = line.split('\t')
+            volume = volume[2].strip('\n')
+            # print (volume)
+            line1 = unicode(line1[0])
+            line1 = ast.literal_eval(line1)
             # line[-1] = str(line[-1])
-            query_data.append(line)
+            # line1 = [int(volume)] + line1
+            # print (line1)
+            query_data.append(line1)
 
-    y_vals = np.array([ float(x[63]) for x in query_data])
+    y_vals = np.array([ float(x[78]) for x in query_data])
 
     for l_ in query_data:
         del l_[-1]
@@ -102,7 +107,7 @@ def multilayer_perceptron(x, weights, biases):
 
 # Store layers weight & bias
 weights = {
-    'h1': tf.Variable(tf.random_normal([63, n_hidden_1], 0, 0.1)),
+    'h1': tf.Variable(tf.random_normal([78, n_hidden_1], 0, 0.1)),
     'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], 0, 0.1)),
     'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3], 0, 0.1)),
     'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4], 0, 0.1)),
@@ -158,9 +163,7 @@ with tf.Session() as sess:
             print ("[*]============================")
 
     print ("Optimization Finished!")
-    perc_err = tf.divide(tf.abs(\
-        tf.subtract(y, prediction)), \
-        tf.reduce_mean(y))
+    perc_err = tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y))
     correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 

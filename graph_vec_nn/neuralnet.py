@@ -9,7 +9,7 @@ n_nodes_hl2 = 0
 n_nodes_hl3 = 0
 n_nodes_hl4 = 0
 
-x = tf.placeholder('float', [None, 66])
+x = tf.placeholder('float', [None, 78])
 y = tf.placeholder('float', [None, 1])
 
 X_train = np.array([])
@@ -49,7 +49,7 @@ def load_data():
 	global X_train
 	global num_training_samples
 
-	with open('db-cold-novec-1k.txt-out') as f:
+	with open('db-cold-novec-3k.txt-out') as f:
 		for line in f:
 			line = re.findall(r'\t(.*?)\t', line)
 			line = unicode(line[0])
@@ -59,7 +59,7 @@ def load_data():
 			# line[-1] = str(line[-1])
 			query_data.append(line)
 
-	y_vals = np.array([ float(x[66])*10000 for x in query_data])
+	y_vals = np.array([ float(x[78])*1000 for x in query_data])
 
 	for l_ in query_data:
 		del l_[-1]
@@ -101,7 +101,7 @@ def multilayer_perceptron(x, weights, biases):
 
 # Store layers weight & bias
 weights = {
-    'h1': tf.Variable(tf.random_normal([66, n_nodes_hl1], 0, 0.1)),
+    'h1': tf.Variable(tf.random_normal([78, n_nodes_hl1], 0, 0.1)),
     'h2': tf.Variable(tf.random_normal([n_nodes_hl1, n_nodes_hl2], 0, 0.1)),
     'h3': tf.Variable(tf.random_normal([n_nodes_hl2, n_nodes_hl3], 0, 0.1)),
     'out': tf.Variable(tf.random_normal([n_nodes_hl3, 1], 0, 0.1))
@@ -116,7 +116,7 @@ biases = {
 def train_neural_network(x):
 	prediction = multilayer_perceptron(x, weights, biases)
 	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
-	optimizer = tf.train.AdamOptimizer(0.03).minimize(cost)
+	optimizer = tf.train.AdamOptimizer(0.001).minimize(cost)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())

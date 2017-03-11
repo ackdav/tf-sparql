@@ -1,7 +1,7 @@
 '''
 Executes Main.java in the same directory and prints it out
 '''
-import subprocess, re, sys, collections
+import subprocess, re, sys, collections, os
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
 from collections import defaultdict
@@ -34,7 +34,7 @@ def jena_graph(java_file, args):
 	'''
 	graph = ''
 	#Makes the call to start Main.java - gets output of file via System.out.println(string)
-	cmd = ["java", "-cp", "/Users/David/libs/jena/lib/*:.", java_file, args]
+	cmd = ["java", "-cp", os.environ.get('CLASSPATH'), java_file, args]
 	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = proc.communicate()
 

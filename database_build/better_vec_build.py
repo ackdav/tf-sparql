@@ -1,5 +1,5 @@
 import re, sys, requests, time, random
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool
 from functools import partial
 from itertools import islice
 
@@ -60,10 +60,10 @@ def gen_query_vectors(log_file):
 	# open queries and regex for links
 	results = []
 	with open(log_file) as f:
-		pool = Pool(4)
+		pool = Pool()
 		results = pool.map_async(convert_query_graph, f, 1)
 		pool.close()
-    	while not results.ready():
+		while not results.ready():
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
 			time.sleep(0.5)

@@ -1,6 +1,8 @@
 from __future__ import absolute_import
+from multiprocessing import Pool
 
-import re, sys, requests, time
+import re, sys, requests, time, random
+import numpy as np
 
 from urlparse import urlparse, parse_qs
 import urllib
@@ -14,32 +16,42 @@ def run_http_request(req):
 	# make call and measure time taken
 	resp = requests.get(url)
 	time1 = time.clock() - t0
-
 	return resp, time1
 
-def write_db(query, time, result_size):
-	with open("tf-db-cold.txt", 'a') as f:
-		# Remove formatting from log to stay consistent (not every url is formatted)
-		line_no_tabs = re.sub(r'%09|%0B', '+', query)
-		line_single_spaces = re.sub(r'\++', '+', line_no_tabs)
-		line_no_formatting = re.sub(r'%0A|%0D', '', line_single_spaces)
-		line_noprefix = re.sub(r'.*query=', '', line_no_formatting)
-		line_noquotes = re.sub(r'"', '', line_noprefix)
-		line_end_format = re.sub(r'(&.*?)$', '', line_noquotes)
+def cleanup_query(query):
+	line_no_tabs = re.sub(r'%09|%0B', '+', query)
+	line_single_spaces = re.sub(r'\++', '+', line_no_tabs)
+	line_no_formatting = re.sub(r'%0A|%0D', '', line_single_spaces)
+	line_noprefix = re.sub(r'.*query=', '', line_no_formatting)
+	line_noquotes = re.sub(r'"', '', line_noprefix)
+	line_end_format = re.sub(r'(&.*?)$', '', line_noquotes)
 
-		#decode url nicely into SPARQL query
-		decoded = urllib.unquote_plus(line_end_format.encode('ascii'))
+	#decode url nicely into SPARQL query
+	return urllib.unquote_plus(line_end_format.encode('ascii'))
 
-		# write db
-		f.write(decoded + '\t' + '\t' + str(time) + '\t' + str(result_size) + '\n')
-		print 'wrote query '
 
-def run_log(log_file):
+def write_db(result_list, log_file):
+	with open(log_file + '-out', 'a') as out:
+		for result in result_list:
+			query, time, result_size = result
+			# write db
+			out.write(decoded + '\t' + '\t' + str(time) + '\t' + str(result_size) + '\n')
+			print 'wrote query '
+
+def run_log(query_line):
 	# open queries and regex for links
-	urls = re.findall('"GET (.*?) HTTP', open (log_file).read())
-
-	for index, line in enumerate(urls):
-		resp, time = run_http_request(line)
+	url_ = re.findall('"GET (.*?) HTTP', query_line)
+	if len(url_)>0:
+		request_line = url_[0]
+		query_times = []
+		resp = ''
+		for _ in range(11):
+			response, exec_time = run_http_request(request_line)
+			query_times.append(exec_time)
+			resp = response
+			time.sleep(random.random()*2)
+		query_times = query_times[1:]
+		exec_time = np.mean(query_times, dtype=np.float64)
 
 		try:
 			respJson = resp.json()
@@ -53,13 +65,33 @@ def run_log(log_file):
 			result_size = 0
 		
 		if result_size > 0:
-			write_db(line, time, result_size)
+			query_clean = cleanup_query(request_line)
+			return (query_clean + '\t' + str(exec_time) + '\t' + str(result_size) + '\n')
 
 		else:
-			print '.',
+			print '/',
+	print '.'
+
+def worker_pool(log_file):
+	results = []
+	with open(log_file) as f:
+
+		pool = Pool()
+		results = pool.map_async(run_log, f,1 )
+		pool.close()
+		while not results.ready():
+			remaining = results._number_left
+			print "Waiting for", remaining, "tasks to complete..."
+			time.sleep(0.5)
+
+	with open(log_file + '-out', 'a') as out:
+		for entry in results.get():
+			if entry is not None:
+				out.write(str(entry))
+
 
 def main():
-	run_log('log100k.log')
+	worker_pool('log100k.log')
 
 
 if __name__ == '__main__':
