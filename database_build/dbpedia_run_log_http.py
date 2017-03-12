@@ -38,15 +38,11 @@ def write_db(result_list, log_file):
 
 def run_log(query_line):
 	# open queries and regex for links
-	try:
-		url_ = re.findall('"GET (.*?) HTTP', query_line)
+	url_ = re.findall('"GET (.*?) HTTP', query_line)
+
+	if len(url_) == 1:
 		request_url = url_[0]
-		valid_url = urlparse.urlparse(request_url)
-		valid_url = bool(valid_url.scheme)
-	except:
-		valid_url=False
-	
-	if valid_url:
+
 		query_times = []
 		resp = ''
 		for _ in range(11):
@@ -83,7 +79,7 @@ def worker_pool(log_file):
 		while not results.ready():
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
-			time.sleep(50)
+			time.sleep(10)
 
 	with open(log_file + '-out', 'a') as out:
 		for entry in results.get():
@@ -92,7 +88,7 @@ def worker_pool(log_file):
 
 
 def main():
-	worker_pool('log160k.log')
+	worker_pool('log20.txt')
 
 
 if __name__ == '__main__':
