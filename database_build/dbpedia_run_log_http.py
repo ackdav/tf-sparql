@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 from multiprocessing import Pool
-
 import re, sys, requests, time, random
 import numpy as np
 
@@ -40,13 +38,19 @@ def write_db(result_list, log_file):
 
 def run_log(query_line):
 	# open queries and regex for links
-	url_ = re.findall('"GET (.*?) HTTP', query_line)
-	if len(url_)>0:
-		request_line = url_[0]
+	try:
+		url_ = re.findall('"GET (.*?) HTTP', query_line)
+		request_url = url_[0]
+		valid_url = urlparse.urlparse(request_url)
+		valid_url = bool(valid_url.scheme)
+	except:
+		valid_url=False
+	
+	if valid_url:
 		query_times = []
 		resp = ''
 		for _ in range(11):
-			response, exec_time = run_http_request(request_line)
+			response, exec_time = run_http_request(request_url)
 			query_times.append(exec_time)
 			resp = response
 			time.sleep(random.random()*2)
@@ -65,12 +69,9 @@ def run_log(query_line):
 			result_size = 0
 		
 		if result_size > 0:
-			query_clean = cleanup_query(request_line)
+			query_clean = cleanup_query(request_url)
 			return (query_clean + '\t' + str(exec_time) + '\t' + str(result_size) + '\n')
-
-		else:
-			print '/',
-	print '.'
+	
 
 def worker_pool(log_file):
 	results = []
@@ -82,7 +83,7 @@ def worker_pool(log_file):
 		while not results.ready():
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
-			time.sleep(0.5)
+			time.sleep(50)
 
 	with open(log_file + '-out', 'a') as out:
 		for entry in results.get():
@@ -91,7 +92,7 @@ def worker_pool(log_file):
 
 
 def main():
-	worker_pool('log100k.log')
+	worker_pool('log160k.log')
 
 
 if __name__ == '__main__':
