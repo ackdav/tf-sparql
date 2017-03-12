@@ -66,7 +66,8 @@ def gen_query_vectors(log_file):
 		while not results.ready():
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
-			time.sleep(4.0)
+			sys.stdout.flush()
+			time.sleep(10.0)
 	print time.clock()-t0
 
 		# for line in f:
@@ -77,9 +78,8 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = 'db-cold-novec-50.txt'
+	log_file = 'log160k.log-out'
 
-	# ged_samples = prepare_ged_benchmark_queries(log_file, 10) # EXPAND
 	gen_query_vectors(log_file)
 
 if __name__ == '__main__':

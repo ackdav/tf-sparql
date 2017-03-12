@@ -27,14 +27,15 @@ def cleanup_query(query):
 	#decode url nicely into SPARQL query
 	return urllib.unquote_plus(line_end_format.encode('ascii'))
 
+def get_result_size(response):
+	try:
+		respJson = response.json()
+		result_size = len(respJson['results']['bindings'])
+	except:
+		respJson = fallback_json
+		result_size = 0
+	return result_size
 
-def write_db(result_list, log_file):
-	with open(log_file + '-out', 'a') as out:
-		for result in result_list:
-			query, time, result_size = result
-			# write db
-			out.write(decoded + '\t' + '\t' + str(time) + '\t' + str(result_size) + '\n')
-			print 'wrote query '
 
 def run_log(query_line):
 	# open queries and regex for links
@@ -45,30 +46,28 @@ def run_log(query_line):
 
 		query_times = []
 		resp = ''
-		for _ in range(11):
-			response, exec_time = run_http_request(request_url)
-			query_times.append(exec_time)
-			resp = response
-			time.sleep(random.random()*2)
-		query_times = query_times[1:]
-		exec_time = np.mean(query_times, dtype=np.float64)
-
-		try:
-			respJson = resp.json()
-		except:
-			respJson = fallback_json
-
-		#try to fetch result size
-		try:
-			result_size = len(respJson['results']['bindings'])
-		except:
-			result_size = 0
+		result_size = 0
 		
-		if result_size > 0:
+		try:
+			for _ in range(11):
+				response, exec_time = run_http_request(request_url)
+				query_times.append(exec_time)
+				
+				result_size = get_result_size(response)
+				if result_size == 0:
+					break
+				
+				time.sleep(random.random()*2)
+		except:
+			exec_time = -1
+
+		if exec_time != -1 and result_size > 0:
+			query_times = query_times[1:]
+                        exec_time = np.mean(query_times, dtype=np.float64)
+
 			query_clean = cleanup_query(request_url)
 			return (query_clean + '\t' + str(exec_time) + '\t' + str(result_size) + '\n')
 	
-
 def worker_pool(log_file):
 	results = []
 	with open(log_file) as f:
@@ -79,6 +78,7 @@ def worker_pool(log_file):
 		while not results.ready():
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
+			sys.stdout.flush()
 			time.sleep(10)
 
 	with open(log_file + '-out', 'a') as out:
@@ -88,7 +88,7 @@ def worker_pool(log_file):
 
 
 def main():
-	worker_pool('log20.txt')
+	worker_pool('log160k.log')
 
 
 if __name__ == '__main__':
