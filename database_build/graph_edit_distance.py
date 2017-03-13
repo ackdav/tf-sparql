@@ -2,7 +2,7 @@ import  sys, re, os.path
 from subprocess import STDOUT,PIPE,Popen
 
 def add_missing_prefixes(query):
-    with open('jena-missing-prefixes.txt') as f:
+    with open(os.path.dirname(os.path.abspath(__file__))+'/jena-missing-prefixes.txt') as f:
         for prefix in f:
             query = prefix + " " + query
     return query
@@ -17,7 +17,7 @@ def get_distances(query):
     query = add_missing_prefixes(query)
 
     benchmark_queries = []
-    with open(os.path.dirname(__file__) + '/dbpedia_stats/dbpedia_benchmark_queries_10.txt') as f:
+    with open(os.path.dirname(os.path.abspath(__file__)) + '/dbpedia_stats/dbpedia_benchmark_queries.txt') as f:
         for line in f:
             benchmark_queries.append(line)
 

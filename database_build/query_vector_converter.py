@@ -5,6 +5,7 @@ import subprocess, re, sys, collections, os
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
 from collections import defaultdict
+from graph_edit_distance import rewrite_describe_queries
 
 # def compile_java(java_file):
 # 	cmd = ["javac", "-classpath", '/Users/David/libs/jena/lib/*:.', java_file]
@@ -19,7 +20,9 @@ from collections import defaultdict
 
 def structural_query_vector(query):
 	result = -1
-
+	
+	if ('DESCRIBE') in query:
+		query = rewrite_describe_queries(query)
 	try:
 		result = jena_graph('Main', query)
 		result = algebra_structure_feature_vector(result[0])
@@ -145,7 +148,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print structural_query_vector("SELECT*{{<http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness> ?po ?x} UNION{?x ?pi <http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness>}} ORDER BY ?pi ?po ?x")
+	print structural_query_vector("DESCRIBE <http://dbpedia.org/resource/John_Retallack>")
 
 
 if __name__ == '__main__':

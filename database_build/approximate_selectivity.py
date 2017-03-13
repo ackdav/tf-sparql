@@ -13,6 +13,7 @@ def extract_list(nested_list, d=0):
 
 def extract_triples(query):
 	nested_list = jena_graph('Main', query)
+	
 	triples =  list(extract_list(nested_list))
 
 	return triples
@@ -32,7 +33,7 @@ def property_selectivity(triple):
 	else:
 		total = 0.
 		occurences = 0.
-		with open(os.path.dirname(__file__) + '/dbpedia_stats/property_triple_count.txt') as f:
+		with open(os.path.dirname(os.path.abspath(__file__))+ '/property_triple_count.txt') as f:
 			for line in f:
 				line = line.split('\t')
 				total += float(line[1])

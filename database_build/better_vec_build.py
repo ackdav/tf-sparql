@@ -37,11 +37,13 @@ def prepare_ged_benchmark_queries(log_file, num_bench):
 
 def convert_query_graph(line):
 
-	query, time, result_size = clean_query_helper(line)
-
-	structure_vector = structural_query_vector(query)
-	ged_distances = get_distances(query)
-	selectivity = get_selectivity(query)
+	try:
+		query, time, result_size = clean_query_helper(line)
+		structure_vector = structural_query_vector(query)
+		ged_distances = get_distances(query)
+		selectivity = get_selectivity(query)
+	except:
+		structure_vector = -1
 
 	if structure_vector != -1:
 		# insert time at end, if converting the db and not ged-sample-set
@@ -74,7 +76,8 @@ def gen_query_vectors(log_file):
 		# 	results.append(preprocess_write_db(True, line))
 	with open(log_file + '-out', 'a') as out:
 		for entry in results.get():
-			out.write(str(entry))
+			if entry is not None:
+				out.write(str(entry))
 
 def main():
 	print "hi"
