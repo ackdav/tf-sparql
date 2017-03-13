@@ -3,7 +3,7 @@ from multiprocessing import Pool
 from functools import partial
 from itertools import islice
 
-from sparql_graph.query_vector_converter import *
+from query_vector_converter import *
 from graph_edit_distance import get_distances
 from approximate_selectivity import get_selectivity
 
@@ -62,7 +62,7 @@ def gen_query_vectors(log_file):
 	t0 = time.clock()
 
 	with open(log_file) as f:
-		pool = Pool()
+		pool = Pool(1)
 		results = pool.map_async(convert_query_graph, f, 1)
 		pool.close()
 		while not results.ready():

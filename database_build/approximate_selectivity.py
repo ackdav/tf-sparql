@@ -1,5 +1,5 @@
 import sys, re, os.path
-from sparql_graph.query_vector_converter import jena_graph
+from query_vector_converter import jena_graph
 from graph_edit_distance import rewrite_describe_queries
 
 def extract_list(nested_list, d=0):
@@ -61,7 +61,7 @@ def get_selectivity(query):
 		return 0.0
 
 def main():
-	print get_selectivity('PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type WHERE { <http://dbpedia.org/resource/Andre_Delorme> rdf:type ?type }')
+	print get_selectivity('PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> select ?label ?abstract ?thumbnail where {?resource rdfs:label ?label ; dbpedia-owl:abstract ?abstract . OPTIONAL { ?resource dbpedia-owl:thumbnail ?thumbnail } FILTER( ?resource = <http://dbpedia.org/resource/Human_factors_and_ergonomics> || ?resource = <http://dbpedia.org/resource/Human_Factors_and_Ergonomics_Society> || ?resource = <http://dbpedia.org/resource/The_Institute_of_Ergonomics_and_Human_Factors> || ?resource = <http://dbpedia.org/resource/Cryptography> || ?resource = <http://dbpedia.org/resource/Proceedings_of_the_Human_Factors_and_Ergonomics_Society_Annual_Meeting> || ?resource = <http://dbpedia.org/resource/Human_Factors_(journal)> || ?resource = <http://dbpedia.org/resource/Human_reliability> || ?resource = <http://dbpedia.org/resource/Ergonomics_in_Design> || ?resource = <http://dbpedia.org/resource/High-velocity_human_factors> || ?resource = <http://dbpedia.org/resource/Engineering_psychology> ) filter(langMatches(lang(?abstract),\"en\")) filter(langMatches(lang(?label),\"en\"))}')
 
 if __name__ == '__main__':
 	main()

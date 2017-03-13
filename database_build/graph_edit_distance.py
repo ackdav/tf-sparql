@@ -1,4 +1,4 @@
-import  sys, re, os.path
+import  sys, re, os.path, time
 from subprocess import STDOUT,PIPE,Popen
 
 def add_missing_prefixes(query):
@@ -35,7 +35,6 @@ def get_distances(query):
                 distances.append(float(stdout))
         except:
             distances.append(-1.0)
-            
     return distances
 
 def main():

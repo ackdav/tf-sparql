@@ -1,7 +1,7 @@
 '''
 Executes Main.java in the same directory and prints it out
 '''
-import subprocess, re, sys, collections, os
+import subprocess, re, sys, collections, os, time
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
 from collections import defaultdict
@@ -43,9 +43,10 @@ def jena_graph(java_file, args):
 
 	for line in stdout:
 		graph += line
-
+	
 	try:
 		res_graph = pp.nestedExpr(opener='(', closer=')').parseString(graph)
+	
 		res_graph = res_graph.asList()
 	except:
 		print "pyparse err", graph, args
@@ -95,8 +96,6 @@ def tokenize_list(nested_list, d=0):
 				yield x
 	return
 
-def sparql_structure_feature_vector(query):
-	print "hi"
 
 def algebra_structure_feature_vector(tree):
 	'''
@@ -148,7 +147,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print structural_query_vector("DESCRIBE <http://dbpedia.org/resource/John_Retallack>")
+	print structural_query_vector("CONSTRUCT  { ?subject ?predicate ?object } WHERE { ?subject ?predicate ?object . FILTER (  ?subject = <http://dbpedia.org/resource/ DBL-583> || ?object = <http://dbpedia.org/resource/ DBL-583>) }")
 
 
 if __name__ == '__main__':
