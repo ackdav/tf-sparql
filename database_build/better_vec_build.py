@@ -70,7 +70,7 @@ def gen_query_vectors(log_file):
 			remaining = results._number_left
 			print "Waiting for", remaining, "tasks to complete..."
 			sys.stdout.flush()
-			time.sleep(1.0)
+			time.sleep(15.0)
 	print time.clock()-t0
 
 		# for line in f:
@@ -82,7 +82,7 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = 'log20.txt-out'
+	log_file = 'log160k.log-out'
 	gen_query_vectors(log_file)
 
 if __name__ == '__main__':
