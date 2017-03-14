@@ -3,9 +3,14 @@ from subprocess import STDOUT,PIPE,Popen
 
 def add_missing_prefixes(query):
     with open(os.path.dirname(os.path.abspath(__file__))+'/jena-missing-prefixes.txt') as f:
+        query = 'PREFIX delimiter: <http://delimiter.com/> ' + query
         for prefix in f:
-            query = prefix + " " + query
+            query = prefix.strip('\n') + " " + query
+        query = 'PREFIX dbpedia-owl: <http://dbpedia.org/ontology/> ' + query
     return query
+
+def remove_temp_prefixes(query):
+    return re.sub(r'^(.*? <http://delimiter.com/> )', '', query)
 
 def rewrite_describe_queries(query):
     uri = re.findall('DESCRIBE <(.*?)>', query)

@@ -49,7 +49,7 @@ def jena_graph(java_file, args):
 	
 		res_graph = res_graph.asList()
 	except:
-		print "pyparse err", graph, args
+		print "pyparse err", sys.exc_info()[0], graph
 		res_graph = -1
 	return res_graph
 
