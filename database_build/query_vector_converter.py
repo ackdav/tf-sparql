@@ -5,7 +5,7 @@ import subprocess, re, sys, collections, os, time
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
 from collections import defaultdict
-from graph_edit_distance import rewrite_describe_queries
+from graph_edit_distance import rewrite_describe_queries, add_missing_prefixes
 
 # def compile_java(java_file):
 # 	cmd = ["javac", "-classpath", '/Users/David/libs/jena/lib/*:.', java_file]
@@ -147,7 +147,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print structural_query_vector("CONSTRUCT  { ?subject ?predicate ?object } WHERE { ?subject ?predicate ?object . FILTER (  ?subject = <http://dbpedia.org/resource/ DBL-583> || ?object = <http://dbpedia.org/resource/ DBL-583>) }")
+	print structural_query_vector("CONSTRUCT { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . }WHERE { { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . } UNION { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . } }")
 
 
 if __name__ == '__main__':

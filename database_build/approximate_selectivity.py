@@ -61,7 +61,7 @@ def get_selectivity(query):
 		return 0.0
 
 def main():
-	print get_selectivity('PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> select ?label ?abstract ?thumbnail where {?resource rdfs:label ?label ; dbpedia-owl:abstract ?abstract . OPTIONAL { ?resource dbpedia-owl:thumbnail ?thumbnail } FILTER( ?resource = <http://dbpedia.org/resource/Human_factors_and_ergonomics> || ?resource = <http://dbpedia.org/resource/Human_Factors_and_Ergonomics_Society> || ?resource = <http://dbpedia.org/resource/The_Institute_of_Ergonomics_and_Human_Factors> || ?resource = <http://dbpedia.org/resource/Cryptography> || ?resource = <http://dbpedia.org/resource/Proceedings_of_the_Human_Factors_and_Ergonomics_Society_Annual_Meeting> || ?resource = <http://dbpedia.org/resource/Human_Factors_(journal)> || ?resource = <http://dbpedia.org/resource/Human_reliability> || ?resource = <http://dbpedia.org/resource/Ergonomics_in_Design> || ?resource = <http://dbpedia.org/resource/High-velocity_human_factors> || ?resource = <http://dbpedia.org/resource/Engineering_psychology> ) filter(langMatches(lang(?abstract),\"en\")) filter(langMatches(lang(?label),\"en\"))}')
+	print get_selectivity('CONSTRUCT { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . }WHERE { { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . } UNION { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . } }')
 
 if __name__ == '__main__':
 	main()

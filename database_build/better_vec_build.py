@@ -15,7 +15,8 @@ def clean_query_helper(query):
 	split = strip.split('\t')
 	query = split[0]
 	#insert spaces before sparql cmds
-	query = re.sub(r'([A-Z]{3,})', r' \1', query)
+	query = re.sub(r'(SELECT|FROM|PREFIX|OPTIONAL|FILTER)', r' \1', query)
+
 	query = ' '.join(query.split())
 	time = split[1]
 	result_size = split[2]
@@ -62,7 +63,7 @@ def gen_query_vectors(log_file):
 	t0 = time.clock()
 
 	with open(log_file) as f:
-		pool = Pool(1)
+		pool = Pool(3)
 		results = pool.map_async(convert_query_graph, f, 1)
 		pool.close()
 		while not results.ready():
@@ -81,7 +82,7 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = 'log160k.log-out'
+	log_file = 'log20.txt-out'
 
 	gen_query_vectors(log_file)
 
