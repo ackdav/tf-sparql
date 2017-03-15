@@ -21,14 +21,15 @@ def clean_query_helper(query):
 	#all queries are missing virtuoso prefixes
 	query = 'PREFIX dbpedia-owl: <http://dbpedia.org/ontology/> ' + query
 	query = ' '.join(query.split())
-	time = split[1]
-	result_size = split[2]
-	return (query, time, result_size)
+	time_warm = split[1]
+	time_cold = split[2]
+	result_size = split[3]
+	return (query, time_warm, time_cold, result_size)
 
 def convert_query_graph(line):
 
 	try:
-		query, time, result_size = clean_query_helper(line)
+		query, time_warm, time_cold, result_size = clean_query_helper(line)
 		if 'DESCRIBE' in query:
 			query = rewrite_describe_queries(query)
 		query = add_missing_prefixes(query)
@@ -50,12 +51,12 @@ def convert_query_graph(line):
 		# insert time at end, if converting the db and not ged-sample-set
 		query_vec = structure_vector + ged_distances
 		query_vec.insert(len(query_vec), selectivity)
-		query_vec.insert(len(query_vec), time)
+		# query_vec.insert(len(query_vec), time)
 		
 		# write db
 		# print '.',
 		sys.stdout.flush()
-		return (query + '\t' + str(query_vec) + "\t" + str(result_size) + '\n')
+		return (query + '\t' + str(query_vec) + "\t" + str(time_warm) + '\t' + str(time_cold) + '\t'+ str(result_size) + '\n')
 
 def gen_query_vectors(log_file):
 	# open queries and regex for links
@@ -82,7 +83,7 @@ def gen_query_vectors(log_file):
 
 def main():
 	print "hi"
-	log_file = 'log160k.log-out'
+	log_file = 'random200k.log-out'
 	gen_query_vectors(log_file)
 
 if __name__ == '__main__':
