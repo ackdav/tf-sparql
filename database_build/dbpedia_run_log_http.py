@@ -62,11 +62,12 @@ def run_log(query_line):
 			exec_time = -1
 
 		if exec_time != -1 and result_size > 0:
-			query_times = query_times[1:]
-                        exec_time = np.mean(query_times, dtype=np.float64)
+			cold_exec_time = query_times[0]
+			warm_times = query_times[1:]
+			warm_mean = np.mean(warm_times, dtype=np.float64)
 
 			query_clean = cleanup_query(request_url)
-			return (query_clean + '\t' + str(exec_time) + '\t' + str(result_size) + '\n')
+			return (query_clean + '\t' + str(warm_mean) + '\t' + str(cold_exec_time) + '\t' + str(result_size) + '\n')
 	
 def worker_pool(log_file):
 	results = []

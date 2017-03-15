@@ -13,9 +13,9 @@ from sklearn import cross_validation
 import numpy as np
 
 # Parameters
-learning_rate = 0.001
-training_epochs = 800
-batch_size = 60
+learning_rate = 0.01
+training_epochs = 600
+batch_size = 150
 display_step = 1
 # Network Parameters
 n_hidden_1 = 350 # 1st layer number of features
@@ -46,7 +46,7 @@ def load_data():
     global num_training_samples
 
     volume = 0.
-    with open('db-cold-novec-3k.txt-out') as f:
+    with open('log160k.log-out-full') as f:
         for line in f:
             line1 = re.findall(r'\t(.*?)\t', line)
             volume = line.split('\t')
@@ -73,7 +73,7 @@ def load_data():
 
     X_train = x_vals[indices].astype('float32')
     X_test = np.delete(x_vals, indices, 0).astype('float32')
-
+                
     Y_train = y_vals[indices].astype('float32')
     Y_test = np.delete(y_vals, indices, 0).astype('float32')
 
@@ -127,7 +127,7 @@ prediction = multilayer_perceptron(x, weights, biases)
 # Define loss and optimizer
 cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(cost)
 
 # Launch the graph
 with tf.Session() as sess:
@@ -163,12 +163,10 @@ with tf.Session() as sess:
             print ("[*]============================")
 
     print ("Optimization Finished!")
-    perc_err = tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y))
-    correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+    perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
+    rmse = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
 
-    mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
+    # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
     Y_test = np.transpose([Y_test])
-    print ("Test accuracy: {:.3f}".format(accuracy.eval({x: X_test, y: Y_test})))
-    rel_error = mean_relative_error.eval({x: X_test, y: Y_test})
-    print ("relative error: ", rel_error)
+    print ("RMSE: {:.3f}".format(rmse.eval({x: X_test, y: Y_test})))
+    print ("relative error: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})))
