@@ -2,12 +2,12 @@ import tensorflow as tf
 tf.reset_default_graph()
 
 from tensorflow.contrib import learn
-import matplotlib.pyplot as plt
-import re, ast, os, sys
+#import matplotlib.pyplot as plt
+import re, ast, os, sys, time
 from random import sample
-from sklearn.pipeline import Pipeline
-from sklearn import datasets, linear_model
-from sklearn import cross_validation
+#from sklearn.pipeline import Pipeline
+#from sklearn import datasets, linear_model
+##from sklearn import cross_validation
 import numpy as np
 
 LOGDIR = 'logs/neuralnet2/'
@@ -226,9 +226,10 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
 
 def main():
-    warm = False
+    warm = True
     load_data('random200k.log-result', warm)
-
+    
+    start_time=time.clock()
     #setup to find optimal nn
     for optimizer in ['AdagradOptimizer']:
         for learning_rate in [0.01]:
@@ -239,6 +240,6 @@ def main():
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 
                 run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config)
-
+    print(time.clock()-start_time)
 if __name__ == '__main__':
     main()

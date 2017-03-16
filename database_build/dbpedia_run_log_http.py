@@ -89,7 +89,7 @@ def worker_pool(log_file):
 
 
 def main():
-	worker_pool('log160k.log')
+	worker_pool('random200k.log')
 
 
 if __name__ == '__main__':
