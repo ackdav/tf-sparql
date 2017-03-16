@@ -96,7 +96,7 @@ def multilayer_perceptron(x, weights, biases):
     layer_3 = tf.nn.relu(layer_3)
 
     # Output layer with linear activation
-    out_layer = tf.matmul(layer_3, weights['out']) + biases['out']
+    out_layer = tf.add(tf.matmul(layer_3, weights['out']), biases['out'])
     return out_layer
 
 # Store layers weight & bias
