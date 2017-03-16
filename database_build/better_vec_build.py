@@ -27,7 +27,6 @@ def clean_query_helper(query):
 	return (query, time_warm, time_cold, result_size)
 
 def convert_query_graph(line):
-
 	try:
 		query, time_warm, time_cold, result_size = clean_query_helper(line)
 		if 'DESCRIBE' in query:
