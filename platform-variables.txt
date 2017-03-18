@@ -1,4 +1,0 @@
-query-vector converter:
-
-Mac: /Users/David/libs/jena/lib/*:.
-slurm: /home/user/ackdav/virtuoso/jena/lib/*:.

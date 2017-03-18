@@ -139,7 +139,7 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
     #     tf.summary.histogram("w_o_summ", biases['out'])
 
 def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
-
+    begin_time = time.time()
     prediction = multilayer_perceptron(x, layer_config)
 
     with tf.name_scope("RMSE"):
@@ -220,7 +220,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
 
         print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
         print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
-        print ("Optimization Finished!")
+        print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
@@ -229,7 +229,6 @@ def main():
     warm = True
     load_data('random200k.log-result', warm)
     
-    start_time=time.clock()
     #setup to find optimal nn
     for optimizer in ['AdagradOptimizer']:
         for learning_rate in [0.01]:
@@ -240,6 +239,5 @@ def main():
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 
                 run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config)
-    print(time.clock()-start_time)
 if __name__ == '__main__':
     main()

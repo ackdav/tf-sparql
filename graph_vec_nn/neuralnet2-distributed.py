@@ -1,25 +1,24 @@
 import tensorflow as tf
 tf.reset_default_graph()
 
-import re, ast, os, sys, time
+import slurm_manager as slm
+import re, ast, os, sys, time, argparse
 from random import sample
 from hostlist import expand_hostlist
 import numpy as np
 
 LOGDIR = 'logs/neuralnet2/'
+FLAGS = None
 
-#dist Tensorflow params
-task_index = int (os.environ['SLURM_PROCID'])
-n_tasks = int(os.environ['SLURM_NPROCS'])
-port = int(os.environ['SLURM_STEP_RESV_PORTS'].split('-')[0])
-tf_hostlist = [ ("%s:%s" % (host, port)) for host in expand_hostlist( os.environ['SLURM_NODELIST'])]
-
-job_name = "nn_test"
-cluster = tf.train.ClusterSpec({job_name: tf_hostlist})
-server = tf.train.Server(cluster.as_cluster_def(), job_name = job_name, task_index, task_index)
+if os.environ['USER']=='ackdav':
+    cluster, myjob, mytaskid = slm.SlurmClusterManager().build_cluster_spec()
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1, allow_growth=True)
+    server = tf.train.Server(cluster,
+                        job_name=myjob,
+                        task_index=mytaskid)
 
 # Parameters
-training_epochs = 250
+training_epochs = 200
 display_step = 1
 # Network Parameters
 n_hidden_1 = 150 # 1st layer number of features
@@ -129,104 +128,104 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
     lastlayer = len(layers_compute)-1
     return layers_compute[lastlayer]
 
-    # #Setup summaries for Tensorflow
-    # with tf.name_scope("weights"):
-    #     tf.summary.histogram("w_h1_summ", weights['h1'])
-    #     tf.summary.histogram("w_h2_summ", weights['h2'])
-    #     tf.summary.histogram("w_h3_summ", weights['h3'])
-    #     tf.summary.histogram("w_h4_summ", weights['h4'])
-    #     tf.summary.histogram("w_o_summ", weights['out'])
-
-    # with tf.name_scope("biases"):
-    #     tf.summary.histogram("w_h1_summ", biases['b1'])
-    #     tf.summary.histogram("w_h2_summ", biases['b2'])
-    #     tf.summary.histogram("w_h3_summ", biases['b3'])
-    #     tf.summary.histogram("w_h4_summ", biases['b4'])
-    #     tf.summary.histogram("w_o_summ", biases['out'])
-
 def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
+    # Between-graph replication
+    begin_time = time.time()
 
-    prediction = multilayer_perceptron(x, layer_config)
+    with tf.device(tf.train.replica_device_setter(
+                worker_device="/job:worker/task:%d" % mytaskid,
+                cluster=cluster)):
+        prediction = multilayer_perceptron(x, layer_config)
 
-    with tf.name_scope("RMSE"):
-        cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
-        tf.summary.scalar("RMSE", cost)
-    with tf.name_scope("relativeMeanError"):
-        perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
-        tf.summary.scalar("relativeMeanError", perc_err)
+        global_step = tf.get_variable('global_step', [], 
+                                    initializer = tf.constant_initializer(0), 
+                                    trainable = False)
+        print("define variables")
+        sys.stdout.flush()
+        with tf.name_scope("RMSE"):
+            cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
+            tf.summary.scalar("RMSE", cost)
+        with tf.name_scope("relativeMeanError"):
+            perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
+            tf.summary.scalar("relativeMeanError", perc_err)
 
-    with tf.name_scope("train"):
-        if optimizer == 'AdagradOptimizer':
-            optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(cost)
-        if optimizer == 'FtrlOptimizer':
-            optimizer = tf.train.FtrlOptimizer(learning_rate=learning_rate).minimize(cost)
-        if optimizer == 'AdadeltaOptimizer':
-            optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
-        if optimizer == 'AdamOptimizer':
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+        with tf.name_scope("train"):
+            if optimizer == 'AdagradOptimizer':
+                optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
+            if optimizer == 'FtrlOptimizer':
+                optimizer = tf.train.FtrlOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
+            if optimizer == 'AdadeltaOptimizer':
+                optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
+            if optimizer == 'AdamOptimizer':
+                optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
 
 
-    # merge all summaries into a single "operation" which we can execute in a session 
-    summary_op = tf.summary.merge_all()
+        # merge all summaries into a single "operation" which we can execute in a session 
+        summary_op = tf.summary.merge_all()
+        saver = tf.train.Saver(sharded=True)
 
-    # Launch the graph
-    with tf.Session() as sess:
-        saver = tf.train.Saver()
-        sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
+        # Launch the graph
+        sv = tf.train.MonitoredSession(master = server.target,
+                                                is_chief=(mytaskid==0),
+                                                checkpoint_dir='/tmp/train_logs',
+                                                init_op = tf.global_variables_initializer(),
+                                                global_step=global_step)
+        if myjob == "ps":
+            server.join()
+        elif myjob == "worker":
 
-        # writer.add_graph(sess.graph)
-        # Training cycle
-        for epoch in range(training_epochs):
-            avg_cost = 0.
-            total_batch = int(num_training_samples/batch_size)
-            # Loop over all batches
-            for i in range(total_batch-1):
-                batch_x = X_train[i*batch_size:(i+1)*batch_size]
-                batch_y = Y_train[i*batch_size:(i+1)*batch_size]
-                batch_y = np.transpose([batch_y])
-                # Run optimization op (backprop) and cost op (to get loss value)
-                _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
-                # Compute average loss
-                avg_cost += c / total_batch
+            with sv.prepare_or_wait_for_session(server.target) as sess:
+                
+                
+                writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
 
-                # if i % 10 == 0:
-                #     # perform the operations we defined earlier on batch
-                #     _, summary = sess.run([optimizer, summary_op], feed_dict={x: batch_x, y: batch_y})
-                #     # write log
-                #     writer.add_summary(summary, epoch * total_batch + i)
+                # writer.add_graph(sess.graph)
+                # Training cycle
+                for epoch in range(training_epochs):
+                    avg_cost = 0.
+                    total_batch = int(num_training_samples/batch_size)
+                    # Loop over all batches
+                    for i in range(total_batch-1):
+                        batch_x = X_train[i*batch_size:(i+1)*batch_size]
+                        batch_y = Y_train[i*batch_size:(i+1)*batch_size]
+                        batch_y = np.transpose([batch_y])
+                        # Run optimization op (backprop) and cost op (to get loss value)
+                        _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
+                        # Compute average loss
+                        avg_cost += c / total_batch
 
-            # sample prediction
-            label_value = batch_y
-            estimate = p
-            err = label_value-estimate
+                    # sample prediction
+                    label_value = batch_y
+                    estimate = p
+                    err = label_value-estimate
 
-            # Display logs per epoch step
-            if epoch % 5 == 0:
-                # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
-                # tf.summary.scalar("perc_error", perc_error)
-                [train_accuracy, s] = sess.run([perc_err, summary_op], feed_dict={x: batch_x, y: batch_y})
-                writer.add_summary(s, epoch)
+                    # Display logs per epoch step
+                    if epoch % 5 == 0:
+                        # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
+                        # tf.summary.scalar("perc_error", perc_error)
+                        [train_accuracy, s] = sess.run([perc_err, summary_op, global_step], feed_dict={x: batch_x, y: batch_y})
+                        writer.add_summary(s, epoch)
 
-                print ("Epoch:", '%04d' % (epoch+1), "cost=", \
-                    "{:.9f}".format(avg_cost))
-                print ("[*]----------------------------")
-                for i in xrange(5):
-                    print ("label value:", label_value[i], \
-                        "estimated value:", estimate[i])
-                print ("[*]============================")
-                sys.stdout.flush()
+                        print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+                            "{:.9f}".format(avg_cost))
+                        print ("[*]----------------------------")
+                        for i in xrange(5):
+                            print ("label value:", label_value[i], \
+                                "estimated value:", estimate[i])
+                        print ("[*]============================")
+                        sys.stdout.flush()
 
-            if epoch % 100 == 0:
-                # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
-                print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-                print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
-                sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
-                saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), i)
+                    if epoch % 100 == 0:
+                        # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
+                        print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
+                        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
+                        sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
+
+                        saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), global_step=global_step)
 
         print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
         print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
-        print ("Optimization Finished!")
+        print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
@@ -234,18 +233,21 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
 def main():
     warm = True
     load_data('random200k.log-result', warm)
-    
+
     start_time=time.clock()
     #setup to find optimal nn
     for optimizer in ['AdagradOptimizer']:
         for learning_rate in [0.01]:
             for batch_size in [100]:
 
-                layer_config = [n_input, 100, 100, 100, 100, 100, 100, n_classes]
+                layer_config = [n_input, 10, 10, 5, n_classes]
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 
                 run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config)
+
     print(time.clock()-start_time)
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    print (parser)
     main()
