@@ -12,7 +12,7 @@ FLAGS = None
 
 if os.environ['USER']=='ackdav':
     cluster, myjob, mytaskid = slm.SlurmClusterManager().build_cluster_spec()
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1, allow_growth=True)
+    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1, allow_growth=True)
     server = tf.train.Server(cluster,
                         job_name=myjob,
                         task_index=mytaskid)
@@ -131,15 +131,15 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
 def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
     # Between-graph replication
     begin_time = time.time()
-
+    
+    # greedy = tf.contrib.training.GreedyLoadBalancingStrategy()
     with tf.device(tf.train.replica_device_setter(
-                worker_device="/job:worker/task:%d" % mytaskid,
+                # worker_device="/job:worker/task:%d" % mytaskid,
                 cluster=cluster)):
         prediction = multilayer_perceptron(x, layer_config)
 
-        global_step = tf.get_variable('global_step', [], 
-                                    initializer = tf.constant_initializer(0), 
-                                    trainable = False)
+        global_step = tf.Variable(0, name='global_step', trainable=False)
+
         print("define variables")
         sys.stdout.flush()
         with tf.name_scope("RMSE"):
@@ -163,20 +163,27 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         # merge all summaries into a single "operation" which we can execute in a session 
         summary_op = tf.summary.merge_all()
         saver = tf.train.Saver(sharded=True)
+        print("Variables initialized ...", myjob)
+        sys.stdout.flush()
 
+        hooks=[tf.train.StopAtStepHook(last_step=100)]
+        
+    if myjob == "ps":
+        server.join()
+    elif myjob == "worker":  
+        print("test", myjob, mytaskid)
+        sys.stdout.flush()
         # Launch the graph
-        sv = tf.train.MonitoredSession(master = server.target,
-                                                is_chief=(mytaskid==0),
-                                                checkpoint_dir='/tmp/train_logs',
-                                                init_op = tf.global_variables_initializer(),
-                                                global_step=global_step)
-        if myjob == "ps":
-            server.join()
-        elif myjob == "worker":
+        with tf.train.MonitoredTrainingSession(
+                                    master = server.target,
+                                    is_chief=(mytaskid==0),
+                                    checkpoint_dir='/tmp/train_logs',
+                                    hooks=hooks
+                                    # init_op = tf.global_variables_initializer(),
+                                    # global_step=global_step
+                                    ) as sess:
 
-            with sv.prepare_or_wait_for_session(server.target) as sess:
-                
-                
+            while not sess.should_stop():
                 writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
 
                 # writer.add_graph(sess.graph)
@@ -222,10 +229,12 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                         sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
 
                         saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), global_step=global_step)
+                    if sess.should_stop():
+                        break
 
-        print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
-        print("Total Time: %3.2fs" % float(time.time() - begin_time))
+    print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
+    print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
+    print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
@@ -239,7 +248,7 @@ def main():
     for optimizer in ['AdagradOptimizer']:
         for learning_rate in [0.01]:
             for batch_size in [100]:
-
+                print(server.target)
                 layer_config = [n_input, 10, 10, 5, n_classes]
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
