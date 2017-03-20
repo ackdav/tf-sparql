@@ -13,7 +13,7 @@ import numpy as np
 LOGDIR = 'logs/neuralnet2/'
 
 # Parameters
-training_epochs = 250
+training_epochs = 400
 display_step = 1
 # Network Parameters
 n_hidden_1 = 150 # 1st layer number of features
@@ -38,7 +38,7 @@ def normalize_cols(m):
     col_min = m.min(axis=0)
     return (m-col_min) / (col_max - col_min)
 
-def load_data(log_file, warm):
+def load_data(log_file, warm, feature_mode):
     query_data = []
     global Y_test
     global X_test
@@ -46,7 +46,7 @@ def load_data(log_file, warm):
     global X_train
     global y_vals
     global num_training_samples
-
+    global n_input
     with open(log_file) as f:
         for line in f:
             query_line = line.strip('\n')
@@ -65,6 +65,13 @@ def load_data(log_file, warm):
 
     for l_ in query_data:
         del l_[-1]
+        if feature_mode == 'structural':
+            l_=l_[0:51]
+        elif feature_mode == 'ged':
+            l_=l_[51:]
+        else:
+            l_=l_
+        n_input = len(l_)
 
     x_vals = np.array(query_data)
 
@@ -123,21 +130,6 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
     lastlayer = len(layers_compute)-1
     return layers_compute[lastlayer]
 
-    # #Setup summaries for Tensorflow
-    # with tf.name_scope("weights"):
-    #     tf.summary.histogram("w_h1_summ", weights['h1'])
-    #     tf.summary.histogram("w_h2_summ", weights['h2'])
-    #     tf.summary.histogram("w_h3_summ", weights['h3'])
-    #     tf.summary.histogram("w_h4_summ", weights['h4'])
-    #     tf.summary.histogram("w_o_summ", weights['out'])
-
-    # with tf.name_scope("biases"):
-    #     tf.summary.histogram("w_h1_summ", biases['b1'])
-    #     tf.summary.histogram("w_h2_summ", biases['b2'])
-    #     tf.summary.histogram("w_h3_summ", biases['b3'])
-    #     tf.summary.histogram("w_h4_summ", biases['b4'])
-    #     tf.summary.histogram("w_o_summ", biases['out'])
-
 def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
     begin_time = time.time()
     prediction = multilayer_perceptron(x, layer_config)
@@ -158,7 +150,6 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
             optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
         if optimizer == 'AdamOptimizer':
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
-
 
     # merge all summaries into a single "operation" which we can execute in a session 
     summary_op = tf.summary.merge_all()
@@ -226,15 +217,15 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
 
 def main():
-    warm = True
-    load_data('random200k.log-result', warm)
+    warm = False
+    load_data('random200k.log-result', warm, 'hybrid')
     
     #setup to find optimal nn
     for optimizer in ['AdagradOptimizer']:
         for learning_rate in [0.01]:
-            for batch_size in [100]:
+            for batch_size in [50]:
 
-                layer_config = [n_input, 100, 100, 100, 100, 100, 100, n_classes]
+                layer_config = [n_input, 128, 128, 100, 64, n_classes]
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 

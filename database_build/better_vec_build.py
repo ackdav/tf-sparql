@@ -50,18 +50,20 @@ def convert_query_graph(line):
 		# insert time at end, if converting the db and not ged-sample-set
 		query_vec = structure_vector + ged_distances
 		query_vec.insert(len(query_vec), selectivity)
-		# query_vec.insert(len(query_vec), time)
 		
 		# write db
-		# print '.',
-		sys.stdout.flush()
 		return (query + '\t' + str(query_vec) + "\t" + str(time_warm) + '\t' + str(time_cold) + '\t'+ str(result_size) + '\n')
 
 def gen_query_vectors(log_file):
+	'''
+	Main method of converting a query-string into the query vector, used in the tensorflow model
+	vector consists of:
+	1. structural query features
+	2. graph edit distances to benchmark queries
+	3. selectivity approximation of query
+	'''
 	# open queries and regex for links
 	results = []
-	t0 = time.clock()
-
 	with open(log_file) as f:
 		pool = Pool()
 		results = pool.map_async(convert_query_graph, f, 1)
@@ -71,10 +73,7 @@ def gen_query_vectors(log_file):
 			print "Waiting for", remaining, "tasks to complete..."
 			sys.stdout.flush()
 			time.sleep(15.0)
-	print time.clock()-t0
 
-		# for line in f:
-		# 	results.append(preprocess_write_db(True, line))
 	with open(log_file + '-out', 'a') as out:
 		for entry in results.get():
 			if entry is not None:

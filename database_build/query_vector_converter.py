@@ -4,19 +4,8 @@ Executes Main.java in the same directory and prints it out
 import subprocess, re, sys, collections, os, time
 from subprocess import STDOUT,PIPE,Popen
 import pyparsing as pp
-from collections import defaultdict
 from graph_edit_distance import rewrite_describe_queries, add_missing_prefixes
 
-# def compile_java(java_file):
-# 	cmd = ["javac", "-classpath", '/Users/David/libs/jena/lib/*:.', java_file]
-# 	proc = subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE)
-# 	stdout, stderr = proc.communicate()
-# executes Main.java in same folder to convert to SPARQL Algebra expressino
-
-# def clean_query(query):
-# 	query = re.sub(r'([A-Z]{3,})', r' \1', query)
-# 	query = ' '.join(query.split())
-# 	return query
 
 def structural_query_vector(query):
 	result = -1

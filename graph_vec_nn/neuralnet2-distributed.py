@@ -134,14 +134,13 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
     
     # greedy = tf.contrib.training.GreedyLoadBalancingStrategy()
     with tf.device(tf.train.replica_device_setter(
-                # worker_device="/job:worker/task:%d" % mytaskid,
+                worker_device="/job:worker/task:%d" % mytaskid,
                 cluster=cluster)):
         prediction = multilayer_perceptron(x, layer_config)
 
         global_step = tf.Variable(0, name='global_step', trainable=False)
 
-        print("define variables")
-        sys.stdout.flush()
+        
         with tf.name_scope("RMSE"):
             cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
             tf.summary.scalar("RMSE", cost)
@@ -160,77 +159,79 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost, global_step=global_step)
 
 
-        # merge all summaries into a single "operation" which we can execute in a session 
-        summary_op = tf.summary.merge_all()
-        saver = tf.train.Saver(sharded=True)
-        print("Variables initialized ...", myjob)
-        sys.stdout.flush()
+            # merge all summaries into a single "operation" which we can execute in a session 
+            summary_op = tf.summary.merge_all()
+            saver = tf.train.Saver(sharded=True)
+            print("Variables initialized ...", myjob)
+            sys.stdout.flush()
 
-        hooks=[tf.train.StopAtStepHook(last_step=100)]
+        if myjob == "ps":
+            server.join()
+        elif myjob == "worker":  
+
+            hooks=[tf.train.StopAtStepHook(last_step=100)]
         
-    if myjob == "ps":
-        server.join()
-    elif myjob == "worker":  
-        print("test", myjob, mytaskid)
-        sys.stdout.flush()
-        # Launch the graph
-        with tf.train.MonitoredTrainingSession(
-                                    master = server.target,
-                                    is_chief=(mytaskid==0),
-                                    checkpoint_dir='/tmp/train_logs',
-                                    hooks=hooks
-                                    # init_op = tf.global_variables_initializer(),
-                                    # global_step=global_step
-                                    ) as sess:
+        
+            print("test", myjob, mytaskid)
+            sys.stdout.flush()
+            # Launch the graph
+            with tf.train.MonitoredTrainingSession(
+                                        master = server.target,
+                                        is_chief=(mytaskid==0),
+                                        checkpoint_dir='/tmp/train_logs',
+                                        hooks=hooks
+                                        # init_op = tf.global_variables_initializer(),
+                                        # global_step=global_step
+                                        ) as sess:
 
-            while not sess.should_stop():
-                writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
+                while not sess.should_stop():
+                    writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
 
-                # writer.add_graph(sess.graph)
-                # Training cycle
-                for epoch in range(training_epochs):
-                    avg_cost = 0.
-                    total_batch = int(num_training_samples/batch_size)
-                    # Loop over all batches
-                    for i in range(total_batch-1):
-                        batch_x = X_train[i*batch_size:(i+1)*batch_size]
-                        batch_y = Y_train[i*batch_size:(i+1)*batch_size]
-                        batch_y = np.transpose([batch_y])
-                        # Run optimization op (backprop) and cost op (to get loss value)
-                        _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
-                        # Compute average loss
-                        avg_cost += c / total_batch
+                    # writer.add_graph(sess.graph)
+                    # Training cycle
+                    for epoch in range(training_epochs):
+                        avg_cost = 0.
+                        total_batch = int(num_training_samples/batch_size)
+                        # Loop over all batches
+                        for i in range(total_batch-1):
+                            batch_x = X_train[i*batch_size:(i+1)*batch_size]
+                            batch_y = Y_train[i*batch_size:(i+1)*batch_size]
+                            batch_y = np.transpose([batch_y])
+                            # Run optimization op (backprop) and cost op (to get loss value)
+                            _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
+                            # Compute average loss
+                            avg_cost += c / total_batch
 
-                    # sample prediction
-                    label_value = batch_y
-                    estimate = p
-                    err = label_value-estimate
+                        # sample prediction
+                        label_value = batch_y
+                        estimate = p
+                        err = label_value-estimate
 
-                    # Display logs per epoch step
-                    if epoch % 5 == 0:
-                        # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
-                        # tf.summary.scalar("perc_error", perc_error)
-                        [train_accuracy, s] = sess.run([perc_err, summary_op, global_step], feed_dict={x: batch_x, y: batch_y})
-                        writer.add_summary(s, epoch)
+                        # Display logs per epoch step
+                        if epoch % 5 == 0:
+                            # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
+                            # tf.summary.scalar("perc_error", perc_error)
+                            [train_accuracy, s] = sess.run([perc_err, summary_op, global_step], feed_dict={x: batch_x, y: batch_y})
+                            writer.add_summary(s, epoch)
 
-                        print ("Epoch:", '%04d' % (epoch+1), "cost=", \
-                            "{:.9f}".format(avg_cost))
-                        print ("[*]----------------------------")
-                        for i in xrange(5):
-                            print ("label value:", label_value[i], \
-                                "estimated value:", estimate[i])
-                        print ("[*]============================")
-                        sys.stdout.flush()
+                            print ("Epoch:", '%04d' % (epoch+1), "cost=", \
+                                "{:.9f}".format(avg_cost))
+                            print ("[*]----------------------------")
+                            for i in xrange(5):
+                                print ("label value:", label_value[i], \
+                                    "estimated value:", estimate[i])
+                            print ("[*]============================")
+                            sys.stdout.flush()
 
-                    if epoch % 100 == 0:
-                        # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
-                        print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-                        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
-                        sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
+                        if epoch % 100 == 0:
+                            # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
+                            print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
+                            print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
+                            sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
 
-                        saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), global_step=global_step)
-                    if sess.should_stop():
-                        break
+                            saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), global_step=global_step)
+                        if sess.should_stop():
+                            break
 
     print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
     print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
