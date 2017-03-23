@@ -6,6 +6,7 @@ __pycache__/
 # user
 /data/BioPortal/dataset/
 /data/dbpedia/dataset/
+/graph_vec_nn/logs/
 
 # C extensions
 *.so

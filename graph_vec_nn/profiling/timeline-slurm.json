@@ -1,0 +1,2124 @@
+{
+    "traceEvents": [
+        {
+            "ph": "M",
+            "args": {
+                "name": "Allocators"
+            },
+            "pid": 0,
+            "name": "process_name"
+        },
+        {
+            "ph": "M",
+            "args": {
+                "name": "/job:localhost/replica:0/task:0/cpu:0 Compute"
+            },
+            "pid": 1,
+            "name": "process_name"
+        },
+        {
+            "ph": "M",
+            "args": {
+                "name": "/job:localhost/replica:0/task:0/cpu:0 Tensors"
+            },
+            "pid": 2,
+            "name": "process_name"
+        },
+        {
+            "name": "NoOp",
+            "args": {
+                "name": "_SOURCE",
+                "op": "NoOp"
+            },
+            "pid": 1,
+            "ts": 1490130302844870,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 31
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845048,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 39
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_2",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845058,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 63
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/weights/w_l1_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845079,
+            "cat": "Op",
+            "tid": 2,
+            "ph": "X",
+            "dur": 55
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable",
+                "name": "neuralnet/Variable/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845102,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 33
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_3",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845060,
+            "cat": "Op",
+            "tid": 3,
+            "ph": "X",
+            "dur": 84
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_2",
+                "name": "neuralnet/Variable_2/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845136,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 16
+        },
+        {
+            "name": "neuralnet/Variable_2",
+            "pid": 1,
+            "ts": 1490130302845121,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 0
+        },
+        {
+            "name": "neuralnet/Variable_2",
+            "pid": 1,
+            "ts": 1490130302845136,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 0
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/biases/b_l1_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845144,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 12
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_6",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845122,
+            "cat": "Op",
+            "tid": 4,
+            "ph": "X",
+            "dur": 38
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_7",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845126,
+            "cat": "Op",
+            "tid": 5,
+            "ph": "X",
+            "dur": 62
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_1",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845056,
+            "cat": "Op",
+            "tid": 6,
+            "ph": "X",
+            "dur": 131
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_5",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845106,
+            "cat": "Op",
+            "tid": 7,
+            "ph": "X",
+            "dur": 103
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_6",
+                "name": "neuralnet/Variable_6/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845177,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 29
+        },
+        {
+            "name": "neuralnet/Variable_6",
+            "pid": 1,
+            "ts": 1490130302845160,
+            "cat": "DataFlow",
+            "tid": 4,
+            "ph": "s",
+            "id": 1
+        },
+        {
+            "name": "neuralnet/Variable_6",
+            "pid": 1,
+            "ts": 1490130302845177,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 1
+        },
+        {
+            "name": "VariableV2",
+            "args": {
+                "name": "neuralnet/Variable_4",
+                "op": "VariableV2"
+            },
+            "pid": 1,
+            "ts": 1490130302845064,
+            "cat": "Op",
+            "tid": 8,
+            "ph": "X",
+            "dur": 122
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_7",
+                "name": "neuralnet/Variable_7/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845224,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 19
+        },
+        {
+            "name": "neuralnet/Variable_7",
+            "pid": 1,
+            "ts": 1490130302845188,
+            "cat": "DataFlow",
+            "tid": 5,
+            "ph": "s",
+            "id": 2
+        },
+        {
+            "name": "neuralnet/Variable_7",
+            "pid": 1,
+            "ts": 1490130302845224,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 2
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_3",
+                "name": "neuralnet/Variable_3/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845161,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 52
+        },
+        {
+            "name": "neuralnet/Variable_3",
+            "pid": 1,
+            "ts": 1490130302845144,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "s",
+            "id": 3
+        },
+        {
+            "name": "neuralnet/Variable_3",
+            "pid": 1,
+            "ts": 1490130302845161,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 3
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/neuralnet/dropout/keep_prob",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845165,
+            "cat": "Op",
+            "tid": 2,
+            "ph": "X",
+            "dur": 40
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_5",
+                "name": "neuralnet/Variable_5/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845255,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 18
+        },
+        {
+            "name": "neuralnet/Variable_5",
+            "pid": 1,
+            "ts": 1490130302845209,
+            "cat": "DataFlow",
+            "tid": 7,
+            "ph": "s",
+            "id": 4
+        },
+        {
+            "name": "neuralnet/Variable_5",
+            "pid": 1,
+            "ts": 1490130302845255,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 4
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_4",
+                "name": "neuralnet/Variable_4/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845257,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 25
+        },
+        {
+            "name": "neuralnet/Variable_4",
+            "pid": 1,
+            "ts": 1490130302845186,
+            "cat": "DataFlow",
+            "tid": 8,
+            "ph": "s",
+            "id": 5
+        },
+        {
+            "name": "neuralnet/Variable_4",
+            "pid": 1,
+            "ts": 1490130302845257,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 5
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/neuralnet/dropout/random_uniform/min",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845271,
+            "cat": "Op",
+            "tid": 2,
+            "ph": "X",
+            "dur": 15
+        },
+        {
+            "name": "Identity",
+            "args": {
+                "input0": "neuralnet/Variable_1",
+                "name": "neuralnet/Variable_1/read",
+                "op": "Identity"
+            },
+            "pid": 1,
+            "ts": 1490130302845257,
+            "cat": "Op",
+            "tid": 3,
+            "ph": "X",
+            "dur": 38
+        },
+        {
+            "name": "neuralnet/Variable_1",
+            "pid": 1,
+            "ts": 1490130302845187,
+            "cat": "DataFlow",
+            "tid": 6,
+            "ph": "s",
+            "id": 6
+        },
+        {
+            "name": "neuralnet/Variable_1",
+            "pid": 1,
+            "ts": 1490130302845257,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "t",
+            "id": 6
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/weights_1/w_l2_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845294,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 10
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/biases_1/b_l2_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845320,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 9
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/weights_2/w_l3_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845344,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 9
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/biases_2/b_l3_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845365,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 9
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/weights_3/w_l4_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845390,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 8
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/biases/b_l1_summary/tag",
+                "input1": "neuralnet/Variable_1/read",
+                "name": "neuralnet/biases/b_l1_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845304,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 112
+        },
+        {
+            "name": "neuralnet/Variable_1/read",
+            "pid": 1,
+            "ts": 1490130302845295,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "s",
+            "id": 7
+        },
+        {
+            "name": "neuralnet/Variable_1/read",
+            "pid": 1,
+            "ts": 1490130302845304,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 7
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/biases_3/b_l4_summary/tag",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845410,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 10
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "RMSE/Const",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845438,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 13
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/biases_1/b_l2_summary/tag",
+                "input1": "neuralnet/Variable_3/read",
+                "name": "neuralnet/biases_1/b_l2_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845339,
+            "cat": "Op",
+            "tid": 2,
+            "ph": "X",
+            "dur": 117
+        },
+        {
+            "name": "neuralnet/biases_1/b_l2_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845329,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 8
+        },
+        {
+            "name": "neuralnet/biases_1/b_l2_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845339,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "t",
+            "id": 8
+        },
+        {
+            "name": "neuralnet/Variable_3/read",
+            "pid": 1,
+            "ts": 1490130302845213,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 9
+        },
+        {
+            "name": "neuralnet/Variable_3/read",
+            "pid": 1,
+            "ts": 1490130302845339,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "t",
+            "id": 9
+        },
+        {
+            "name": "Mean",
+            "args": {
+                "input0": "_recv_y_0",
+                "input1": "relativeMeanError/Const",
+                "name": "relativeMeanError/Mean",
+                "op": "Mean"
+            },
+            "pid": 1,
+            "ts": 1490130302845461,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 30
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/biases_2/b_l3_summary/tag",
+                "input1": "neuralnet/Variable_5/read",
+                "name": "neuralnet/biases_2/b_l3_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845383,
+            "cat": "Op",
+            "tid": 3,
+            "ph": "X",
+            "dur": 117
+        },
+        {
+            "name": "neuralnet/biases_2/b_l3_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845374,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 10
+        },
+        {
+            "name": "neuralnet/biases_2/b_l3_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845383,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "t",
+            "id": 10
+        },
+        {
+            "name": "neuralnet/Variable_5/read",
+            "pid": 1,
+            "ts": 1490130302845273,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 11
+        },
+        {
+            "name": "neuralnet/Variable_5/read",
+            "pid": 1,
+            "ts": 1490130302845383,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "t",
+            "id": 11
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/weights_3/w_l4_summary/tag",
+                "input1": "neuralnet/Variable_6/read",
+                "name": "neuralnet/weights_3/w_l4_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845417,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 89
+        },
+        {
+            "name": "neuralnet/weights_3/w_l4_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845398,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 12
+        },
+        {
+            "name": "neuralnet/weights_3/w_l4_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845417,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 12
+        },
+        {
+            "name": "neuralnet/Variable_6/read",
+            "pid": 1,
+            "ts": 1490130302845206,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 13
+        },
+        {
+            "name": "neuralnet/Variable_6/read",
+            "pid": 1,
+            "ts": 1490130302845417,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 13
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "RMSE/RMSE_1/tags",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845476,
+            "cat": "Op",
+            "tid": 2,
+            "ph": "X",
+            "dur": 38
+        },
+        {
+            "name": "MatMul",
+            "args": {
+                "input0": "_recv_x_0",
+                "input1": "neuralnet/Variable/read",
+                "name": "neuralnet/MatMul",
+                "op": "MatMul"
+            },
+            "pid": 1,
+            "ts": 1490130302845183,
+            "cat": "Op",
+            "tid": 4,
+            "ph": "X",
+            "dur": 332
+        },
+        {
+            "name": "neuralnet/Variable/read",
+            "pid": 1,
+            "ts": 1490130302845135,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 14
+        },
+        {
+            "name": "neuralnet/Variable/read",
+            "pid": 1,
+            "ts": 1490130302845183,
+            "cat": "DataFlow",
+            "tid": 4,
+            "ph": "t",
+            "id": 14
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "relativeMeanError/relativeMeanError/tags",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845522,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 10
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/biases_3/b_l4_summary/tag",
+                "input1": "neuralnet/Variable_7/read",
+                "name": "neuralnet/biases_3/b_l4_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845434,
+            "cat": "Op",
+            "tid": 5,
+            "ph": "X",
+            "dur": 71
+        },
+        {
+            "name": "neuralnet/biases_3/b_l4_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845420,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 15
+        },
+        {
+            "name": "neuralnet/biases_3/b_l4_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845434,
+            "cat": "DataFlow",
+            "tid": 5,
+            "ph": "t",
+            "id": 15
+        },
+        {
+            "name": "neuralnet/Variable_7/read",
+            "pid": 1,
+            "ts": 1490130302845243,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 16
+        },
+        {
+            "name": "neuralnet/Variable_7/read",
+            "pid": 1,
+            "ts": 1490130302845434,
+            "cat": "DataFlow",
+            "tid": 5,
+            "ph": "t",
+            "id": 16
+        },
+        {
+            "name": "Const",
+            "args": {
+                "name": "neuralnet/neuralnet/dropout/random_uniform/sub/_2__cf__2",
+                "op": "Const"
+            },
+            "pid": 1,
+            "ts": 1490130302845538,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 11
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/MatMul",
+                "input1": "neuralnet/Variable_1/read",
+                "name": "neuralnet/Add",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302845531,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 327
+        },
+        {
+            "name": "neuralnet/MatMul",
+            "pid": 1,
+            "ts": 1490130302845515,
+            "cat": "DataFlow",
+            "tid": 4,
+            "ph": "s",
+            "id": 17
+        },
+        {
+            "name": "neuralnet/MatMul",
+            "pid": 1,
+            "ts": 1490130302845531,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 17
+        },
+        {
+            "name": "neuralnet/Variable_1/read",
+            "pid": 1,
+            "ts": 1490130302845295,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "s",
+            "id": 18
+        },
+        {
+            "name": "neuralnet/Variable_1/read",
+            "pid": 1,
+            "ts": 1490130302845531,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 18
+        },
+        {
+            "name": "Relu",
+            "args": {
+                "input0": "neuralnet/Add",
+                "name": "neuralnet/neuralnet/Relu",
+                "op": "Relu"
+            },
+            "pid": 1,
+            "ts": 1490130302845867,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 98
+        },
+        {
+            "name": "neuralnet/Add",
+            "pid": 1,
+            "ts": 1490130302845858,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 19
+        },
+        {
+            "name": "neuralnet/Add",
+            "pid": 1,
+            "ts": 1490130302845867,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 19
+        },
+        {
+            "name": "Shape",
+            "args": {
+                "input0": "neuralnet/neuralnet/Relu",
+                "name": "neuralnet/neuralnet/dropout/Shape",
+                "op": "Shape"
+            },
+            "pid": 1,
+            "ts": 1490130302845986,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 15
+        },
+        {
+            "name": "RealDiv",
+            "args": {
+                "input0": "neuralnet/neuralnet/Relu",
+                "input1": "neuralnet/neuralnet/dropout/keep_prob",
+                "name": "neuralnet/neuralnet/dropout/div",
+                "op": "RealDiv"
+            },
+            "pid": 1,
+            "ts": 1490130302845978,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 146
+        },
+        {
+            "name": "neuralnet/neuralnet/Relu",
+            "pid": 1,
+            "ts": 1490130302845965,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 20
+        },
+        {
+            "name": "neuralnet/neuralnet/Relu",
+            "pid": 1,
+            "ts": 1490130302845978,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 20
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/keep_prob",
+            "pid": 1,
+            "ts": 1490130302845205,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 21
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/keep_prob",
+            "pid": 1,
+            "ts": 1490130302845978,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 21
+        },
+        {
+            "name": "RandomUniform",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/Shape",
+                "name": "neuralnet/neuralnet/dropout/random_uniform/RandomUniform",
+                "op": "RandomUniform"
+            },
+            "pid": 1,
+            "ts": 1490130302846008,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 243
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/random_uniform/RandomUniform",
+                "input1": "neuralnet/neuralnet/dropout/random_uniform/sub",
+                "name": "neuralnet/neuralnet/dropout/random_uniform/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302846261,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 97
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/random_uniform/mul",
+                "input1": "neuralnet/neuralnet/dropout/random_uniform/min",
+                "name": "neuralnet/neuralnet/dropout/random_uniform",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302846367,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 114
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/random_uniform/min",
+            "pid": 1,
+            "ts": 1490130302845286,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 22
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/random_uniform/min",
+            "pid": 1,
+            "ts": 1490130302846367,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 22
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/keep_prob",
+                "input1": "neuralnet/neuralnet/dropout/random_uniform",
+                "name": "neuralnet/neuralnet/dropout/add",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302846490,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 43
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/keep_prob",
+            "pid": 1,
+            "ts": 1490130302845205,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 23
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/keep_prob",
+            "pid": 1,
+            "ts": 1490130302846490,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 23
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/weights/w_l1_summary/tag",
+                "input1": "neuralnet/Variable/read",
+                "name": "neuralnet/weights/w_l1_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845148,
+            "cat": "Op",
+            "tid": 9,
+            "ph": "X",
+            "dur": 1729
+        },
+        {
+            "name": "neuralnet/weights/w_l1_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845134,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 24
+        },
+        {
+            "name": "neuralnet/weights/w_l1_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845148,
+            "cat": "DataFlow",
+            "tid": 9,
+            "ph": "t",
+            "id": 24
+        },
+        {
+            "name": "neuralnet/Variable/read",
+            "pid": 1,
+            "ts": 1490130302845135,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 25
+        },
+        {
+            "name": "neuralnet/Variable/read",
+            "pid": 1,
+            "ts": 1490130302845148,
+            "cat": "DataFlow",
+            "tid": 9,
+            "ph": "t",
+            "id": 25
+        },
+        {
+            "name": "Floor",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/add",
+                "name": "neuralnet/neuralnet/dropout/Floor",
+                "op": "Floor"
+            },
+            "pid": 1,
+            "ts": 1490130302846541,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 428
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/div",
+                "input1": "neuralnet/neuralnet/dropout/Floor",
+                "name": "neuralnet/neuralnet/dropout/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302846977,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 68
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/div",
+            "pid": 1,
+            "ts": 1490130302846124,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 26
+        },
+        {
+            "name": "neuralnet/neuralnet/dropout/div",
+            "pid": 1,
+            "ts": 1490130302846977,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 26
+        },
+        {
+            "name": "MatMul",
+            "args": {
+                "input0": "neuralnet/neuralnet/dropout/mul",
+                "input1": "neuralnet/Variable_2/read",
+                "name": "neuralnet/MatMul_1",
+                "op": "MatMul"
+            },
+            "pid": 1,
+            "ts": 1490130302847053,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 499
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/MatMul_1",
+                "input1": "neuralnet/Variable_3/read",
+                "name": "neuralnet/Add_1",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302847573,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 370
+        },
+        {
+            "name": "neuralnet/Variable_3/read",
+            "pid": 1,
+            "ts": 1490130302845213,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 27
+        },
+        {
+            "name": "neuralnet/Variable_3/read",
+            "pid": 1,
+            "ts": 1490130302847573,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 27
+        },
+        {
+            "name": "Relu",
+            "args": {
+                "input0": "neuralnet/Add_1",
+                "name": "neuralnet/neuralnet_1/Relu",
+                "op": "Relu"
+            },
+            "pid": 1,
+            "ts": 1490130302847952,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 95
+        },
+        {
+            "name": "Shape",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/Relu",
+                "name": "neuralnet/neuralnet_1/dropout/Shape",
+                "op": "Shape"
+            },
+            "pid": 1,
+            "ts": 1490130302848072,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 14
+        },
+        {
+            "name": "RealDiv",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/Relu",
+                "input1": "neuralnet/neuralnet_1/dropout/keep_prob",
+                "name": "neuralnet/neuralnet_1/dropout/div",
+                "op": "RealDiv"
+            },
+            "pid": 1,
+            "ts": 1490130302848107,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 163
+        },
+        {
+            "name": "RandomUniform",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/Shape",
+                "name": "neuralnet/neuralnet_1/dropout/random_uniform/RandomUniform",
+                "op": "RandomUniform"
+            },
+            "pid": 1,
+            "ts": 1490130302848094,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 296
+        },
+        {
+            "name": "neuralnet/neuralnet_1/dropout/Shape",
+            "pid": 1,
+            "ts": 1490130302848086,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 28
+        },
+        {
+            "name": "neuralnet/neuralnet_1/dropout/Shape",
+            "pid": 1,
+            "ts": 1490130302848094,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 28
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/random_uniform/RandomUniform",
+                "input1": "neuralnet/neuralnet_1/dropout/random_uniform/sub",
+                "name": "neuralnet/neuralnet_1/dropout/random_uniform/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302848399,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 95
+        },
+        {
+            "name": "neuralnet/neuralnet_1/dropout/random_uniform/RandomUniform",
+            "pid": 1,
+            "ts": 1490130302848390,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 29
+        },
+        {
+            "name": "neuralnet/neuralnet_1/dropout/random_uniform/RandomUniform",
+            "pid": 1,
+            "ts": 1490130302848399,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 29
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/random_uniform/mul",
+                "input1": "neuralnet/neuralnet_1/dropout/random_uniform/min",
+                "name": "neuralnet/neuralnet_1/dropout/random_uniform",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302848504,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 113
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/keep_prob",
+                "input1": "neuralnet/neuralnet_1/dropout/random_uniform",
+                "name": "neuralnet/neuralnet_1/dropout/add",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302848626,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 44
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/weights_1/w_l2_summary/tag",
+                "input1": "neuralnet/Variable_2/read",
+                "name": "neuralnet/weights_1/w_l2_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845316,
+            "cat": "Op",
+            "tid": 6,
+            "ph": "X",
+            "dur": 3428
+        },
+        {
+            "name": "neuralnet/weights_1/w_l2_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845304,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 30
+        },
+        {
+            "name": "neuralnet/weights_1/w_l2_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845316,
+            "cat": "DataFlow",
+            "tid": 6,
+            "ph": "t",
+            "id": 30
+        },
+        {
+            "name": "neuralnet/Variable_2/read",
+            "pid": 1,
+            "ts": 1490130302845152,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 31
+        },
+        {
+            "name": "neuralnet/Variable_2/read",
+            "pid": 1,
+            "ts": 1490130302845316,
+            "cat": "DataFlow",
+            "tid": 6,
+            "ph": "t",
+            "id": 31
+        },
+        {
+            "name": "HistogramSummary",
+            "args": {
+                "input0": "neuralnet/weights_2/w_l3_summary/tag",
+                "input1": "neuralnet/Variable_4/read",
+                "name": "neuralnet/weights_2/w_l3_summary",
+                "op": "HistogramSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302845362,
+            "cat": "Op",
+            "tid": 7,
+            "ph": "X",
+            "dur": 3443
+        },
+        {
+            "name": "neuralnet/weights_2/w_l3_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845353,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 32
+        },
+        {
+            "name": "neuralnet/weights_2/w_l3_summary/tag",
+            "pid": 1,
+            "ts": 1490130302845362,
+            "cat": "DataFlow",
+            "tid": 7,
+            "ph": "t",
+            "id": 32
+        },
+        {
+            "name": "neuralnet/Variable_4/read",
+            "pid": 1,
+            "ts": 1490130302845282,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 33
+        },
+        {
+            "name": "neuralnet/Variable_4/read",
+            "pid": 1,
+            "ts": 1490130302845362,
+            "cat": "DataFlow",
+            "tid": 7,
+            "ph": "t",
+            "id": 33
+        },
+        {
+            "name": "Floor",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/add",
+                "name": "neuralnet/neuralnet_1/dropout/Floor",
+                "op": "Floor"
+            },
+            "pid": 1,
+            "ts": 1490130302848679,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 452
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/div",
+                "input1": "neuralnet/neuralnet_1/dropout/Floor",
+                "name": "neuralnet/neuralnet_1/dropout/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302849140,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 74
+        },
+        {
+            "name": "MatMul",
+            "args": {
+                "input0": "neuralnet/neuralnet_1/dropout/mul",
+                "input1": "neuralnet/Variable_4/read",
+                "name": "neuralnet/MatMul_2",
+                "op": "MatMul"
+            },
+            "pid": 1,
+            "ts": 1490130302849223,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 510
+        },
+        {
+            "name": "neuralnet/Variable_4/read",
+            "pid": 1,
+            "ts": 1490130302845282,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 34
+        },
+        {
+            "name": "neuralnet/Variable_4/read",
+            "pid": 1,
+            "ts": 1490130302849223,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 34
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/MatMul_2",
+                "input1": "neuralnet/Variable_5/read",
+                "name": "neuralnet/Add_2",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302849743,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 353
+        },
+        {
+            "name": "Relu",
+            "args": {
+                "input0": "neuralnet/Add_2",
+                "name": "neuralnet/neuralnet_2/Relu",
+                "op": "Relu"
+            },
+            "pid": 1,
+            "ts": 1490130302850105,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 96
+        },
+        {
+            "name": "Shape",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/Relu",
+                "name": "neuralnet/neuralnet_2/dropout/Shape",
+                "op": "Shape"
+            },
+            "pid": 1,
+            "ts": 1490130302850222,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 16
+        },
+        {
+            "name": "RealDiv",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/Relu",
+                "input1": "neuralnet/neuralnet_2/dropout/keep_prob",
+                "name": "neuralnet/neuralnet_2/dropout/div",
+                "op": "RealDiv"
+            },
+            "pid": 1,
+            "ts": 1490130302850265,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 160
+        },
+        {
+            "name": "RandomUniform",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/Shape",
+                "name": "neuralnet/neuralnet_2/dropout/random_uniform/RandomUniform",
+                "op": "RandomUniform"
+            },
+            "pid": 1,
+            "ts": 1490130302850246,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 255
+        },
+        {
+            "name": "neuralnet/neuralnet_2/dropout/Shape",
+            "pid": 1,
+            "ts": 1490130302850238,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 35
+        },
+        {
+            "name": "neuralnet/neuralnet_2/dropout/Shape",
+            "pid": 1,
+            "ts": 1490130302850246,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 35
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/random_uniform/RandomUniform",
+                "input1": "neuralnet/neuralnet_2/dropout/random_uniform/sub",
+                "name": "neuralnet/neuralnet_2/dropout/random_uniform/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302850510,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 96
+        },
+        {
+            "name": "neuralnet/neuralnet_2/dropout/random_uniform/RandomUniform",
+            "pid": 1,
+            "ts": 1490130302850501,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 36
+        },
+        {
+            "name": "neuralnet/neuralnet_2/dropout/random_uniform/RandomUniform",
+            "pid": 1,
+            "ts": 1490130302850510,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 36
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/random_uniform/mul",
+                "input1": "neuralnet/neuralnet_2/dropout/random_uniform/min",
+                "name": "neuralnet/neuralnet_2/dropout/random_uniform",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302850615,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 107
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/keep_prob",
+                "input1": "neuralnet/neuralnet_2/dropout/random_uniform",
+                "name": "neuralnet/neuralnet_2/dropout/add",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302850731,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 42
+        },
+        {
+            "name": "Floor",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/add",
+                "name": "neuralnet/neuralnet_2/dropout/Floor",
+                "op": "Floor"
+            },
+            "pid": 1,
+            "ts": 1490130302850782,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 420
+        },
+        {
+            "name": "Mul",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/div",
+                "input1": "neuralnet/neuralnet_2/dropout/Floor",
+                "name": "neuralnet/neuralnet_2/dropout/mul",
+                "op": "Mul"
+            },
+            "pid": 1,
+            "ts": 1490130302851209,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 71
+        },
+        {
+            "name": "MatMul",
+            "args": {
+                "input0": "neuralnet/neuralnet_2/dropout/mul",
+                "input1": "neuralnet/Variable_6/read",
+                "name": "neuralnet/MatMul_3",
+                "op": "MatMul"
+            },
+            "pid": 1,
+            "ts": 1490130302851288,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 36
+        },
+        {
+            "name": "Add",
+            "args": {
+                "input0": "neuralnet/MatMul_3",
+                "input1": "neuralnet/Variable_7/read",
+                "name": "neuralnet/Add_3",
+                "op": "Add"
+            },
+            "pid": 1,
+            "ts": 1490130302851332,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 24
+        },
+        {
+            "name": "Sub",
+            "args": {
+                "input0": "_recv_y_0",
+                "input1": "neuralnet/Add_3",
+                "name": "RMSE/Sub",
+                "op": "Sub"
+            },
+            "pid": 1,
+            "ts": 1490130302851375,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 18
+        },
+        {
+            "name": "Square",
+            "args": {
+                "input0": "RMSE/Sub",
+                "name": "RMSE/Square",
+                "op": "Square"
+            },
+            "pid": 1,
+            "ts": 1490130302851414,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 18
+        },
+        {
+            "name": "Mean",
+            "args": {
+                "input0": "RMSE/Square",
+                "input1": "RMSE/Const",
+                "name": "RMSE/Mean",
+                "op": "Mean"
+            },
+            "pid": 1,
+            "ts": 1490130302851440,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 24
+        },
+        {
+            "name": "Abs",
+            "args": {
+                "input0": "relativeMeanError/Sub",
+                "name": "relativeMeanError/Abs",
+                "op": "Abs"
+            },
+            "pid": 1,
+            "ts": 1490130302851439,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 46
+        },
+        {
+            "name": "Sqrt",
+            "args": {
+                "input0": "RMSE/Mean",
+                "name": "RMSE/RMSE",
+                "op": "Sqrt"
+            },
+            "pid": 1,
+            "ts": 1490130302851471,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 19
+        },
+        {
+            "name": "RealDiv",
+            "args": {
+                "input0": "relativeMeanError/Abs",
+                "input1": "relativeMeanError/Mean",
+                "name": "relativeMeanError/truediv",
+                "op": "RealDiv"
+            },
+            "pid": 1,
+            "ts": 1490130302851512,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 31
+        },
+        {
+            "name": "relativeMeanError/Abs",
+            "pid": 1,
+            "ts": 1490130302851485,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 37
+        },
+        {
+            "name": "relativeMeanError/Abs",
+            "pid": 1,
+            "ts": 1490130302851512,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 37
+        },
+        {
+            "name": "ScalarSummary",
+            "args": {
+                "input0": "RMSE/RMSE_1/tags",
+                "input1": "RMSE/RMSE",
+                "name": "RMSE/RMSE_1",
+                "op": "ScalarSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302851530,
+            "cat": "Op",
+            "tid": 1,
+            "ph": "X",
+            "dur": 29
+        },
+        {
+            "name": "RMSE/RMSE_1/tags",
+            "pid": 1,
+            "ts": 1490130302845514,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 38
+        },
+        {
+            "name": "RMSE/RMSE_1/tags",
+            "pid": 1,
+            "ts": 1490130302851530,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 38
+        },
+        {
+            "name": "RMSE/RMSE",
+            "pid": 1,
+            "ts": 1490130302851490,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "s",
+            "id": 39
+        },
+        {
+            "name": "RMSE/RMSE",
+            "pid": 1,
+            "ts": 1490130302851530,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "t",
+            "id": 39
+        },
+        {
+            "name": "Mean",
+            "args": {
+                "input0": "relativeMeanError/truediv",
+                "input1": "relativeMeanError/Const_1",
+                "name": "relativeMeanError/Mean_1",
+                "op": "Mean"
+            },
+            "pid": 1,
+            "ts": 1490130302851553,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 23
+        },
+        {
+            "name": "ScalarSummary",
+            "args": {
+                "input0": "relativeMeanError/relativeMeanError/tags",
+                "input1": "relativeMeanError/Mean_1",
+                "name": "relativeMeanError/relativeMeanError",
+                "op": "ScalarSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302851584,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 23
+        },
+        {
+            "name": "MergeSummary",
+            "args": {
+                "input2": "neuralnet/weights_1/w_l2_summary",
+                "input3": "neuralnet/biases_1/b_l2_summary",
+                "input0": "neuralnet/weights/w_l1_summary",
+                "input1": "neuralnet/biases/b_l1_summary",
+                "input6": "neuralnet/weights_3/w_l4_summary",
+                "name": "Merge/MergeSummary",
+                "input4": "neuralnet/weights_2/w_l3_summary",
+                "input5": "neuralnet/biases_2/b_l3_summary",
+                "input7": "neuralnet/biases_3/b_l4_summary",
+                "input8": "RMSE/RMSE_1",
+                "input9": "relativeMeanError/relativeMeanError",
+                "op": "MergeSummary"
+            },
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "Op",
+            "tid": 0,
+            "ph": "X",
+            "dur": 216
+        },
+        {
+            "name": "neuralnet/weights/w_l1_summary",
+            "pid": 1,
+            "ts": 1490130302846877,
+            "cat": "DataFlow",
+            "tid": 9,
+            "ph": "s",
+            "id": 40
+        },
+        {
+            "name": "neuralnet/weights/w_l1_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 40
+        },
+        {
+            "name": "neuralnet/biases/b_l1_summary",
+            "pid": 1,
+            "ts": 1490130302845416,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 41
+        },
+        {
+            "name": "neuralnet/biases/b_l1_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 41
+        },
+        {
+            "name": "neuralnet/weights_1/w_l2_summary",
+            "pid": 1,
+            "ts": 1490130302848744,
+            "cat": "DataFlow",
+            "tid": 6,
+            "ph": "s",
+            "id": 42
+        },
+        {
+            "name": "neuralnet/weights_1/w_l2_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 42
+        },
+        {
+            "name": "neuralnet/biases_1/b_l2_summary",
+            "pid": 1,
+            "ts": 1490130302845456,
+            "cat": "DataFlow",
+            "tid": 2,
+            "ph": "s",
+            "id": 43
+        },
+        {
+            "name": "neuralnet/biases_1/b_l2_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 43
+        },
+        {
+            "name": "neuralnet/weights_2/w_l3_summary",
+            "pid": 1,
+            "ts": 1490130302848805,
+            "cat": "DataFlow",
+            "tid": 7,
+            "ph": "s",
+            "id": 44
+        },
+        {
+            "name": "neuralnet/weights_2/w_l3_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 44
+        },
+        {
+            "name": "neuralnet/biases_2/b_l3_summary",
+            "pid": 1,
+            "ts": 1490130302845500,
+            "cat": "DataFlow",
+            "tid": 3,
+            "ph": "s",
+            "id": 45
+        },
+        {
+            "name": "neuralnet/biases_2/b_l3_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 45
+        },
+        {
+            "name": "neuralnet/weights_3/w_l4_summary",
+            "pid": 1,
+            "ts": 1490130302845506,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 46
+        },
+        {
+            "name": "neuralnet/weights_3/w_l4_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 46
+        },
+        {
+            "name": "neuralnet/biases_3/b_l4_summary",
+            "pid": 1,
+            "ts": 1490130302845505,
+            "cat": "DataFlow",
+            "tid": 5,
+            "ph": "s",
+            "id": 47
+        },
+        {
+            "name": "neuralnet/biases_3/b_l4_summary",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 47
+        },
+        {
+            "name": "RMSE/RMSE_1",
+            "pid": 1,
+            "ts": 1490130302851559,
+            "cat": "DataFlow",
+            "tid": 1,
+            "ph": "s",
+            "id": 48
+        },
+        {
+            "name": "RMSE/RMSE_1",
+            "pid": 1,
+            "ts": 1490130302851615,
+            "cat": "DataFlow",
+            "tid": 0,
+            "ph": "t",
+            "id": 48
+        }
+    ]
+}

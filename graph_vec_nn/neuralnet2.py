@@ -1,25 +1,15 @@
 import tensorflow as tf
 tf.reset_default_graph()
 
-from tensorflow.contrib import learn
-#import matplotlib.pyplot as plt
+from tensorflow.python.client import timeline
 import re, ast, os, sys, time
 from random import sample
-#from sklearn.pipeline import Pipeline
-#from sklearn import datasets, linear_model
-##from sklearn import cross_validation
 import numpy as np
 
 LOGDIR = 'logs/neuralnet2/'
 
 # Parameters
-training_epochs = 400
-display_step = 1
-# Network Parameters
-n_hidden_1 = 150 # 1st layer number of features
-n_hidden_2 = 200 # 2nd layer number of features
-n_hidden_3 = 150
-n_hidden_4 = 70
+training_epochs = 100
 
 n_classes = 1
 n_input = 63
@@ -30,6 +20,8 @@ Y_test = np.array([])
 y_vals = np.array([])
 no_model_error = 0.
 # tf Graph input
+keep_rate = 0.8
+keep_prob = tf.placeholder(tf.float32)
 x = tf.placeholder("float", [None, n_input], name="x")
 y = tf.placeholder("float", [None,1], name="y")
 
@@ -114,16 +106,17 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
                         'biases': tf.Variable(tf.random_normal([layer_config[i]], 0, 0.1))}
             layers[i-1] = new_layer
 
-            with tf.name_scope("weights"):
-                tf.summary.histogram("w_l"+str(i)+"_summary", new_layer['weights'])
+            # with tf.name_scope("weights"):
+            #     tf.summary.histogram("w_l"+str(i)+"_summary", new_layer['weights'])
 
-            with tf.name_scope("biases"):
-                tf.summary.histogram("b_l"+str(i)+"_summary", new_layer['biases'])
+            # with tf.name_scope("biases"):
+            #     tf.summary.histogram("b_l"+str(i)+"_summary", new_layer['biases'])
 
             l = tf.add(tf.matmul(x if i == 1 else layers_compute[i-2], layers[i-1]['weights']), layers[i-1]['biases'])
             
             with tf.name_scope(name):
                 l = tf.nn.relu(l) if i != len(layer_config)-1 else l
+                # l = tf.nn.dropout(l, keep_rate) if i != len(layer_config)-1 else l
 
             layers_compute[i-1] = l
 
@@ -133,6 +126,10 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
 def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
     begin_time = time.time()
     prediction = multilayer_perceptron(x, layer_config)
+    
+    #profiling options to generate a trace
+    # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+    # run_metadata = tf.RunMetadata()
 
     with tf.name_scope("RMSE"):
         cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
@@ -153,14 +150,13 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
 
     # merge all summaries into a single "operation" which we can execute in a session 
     summary_op = tf.summary.merge_all()
-
+    
     # Launch the graph
     with tf.Session() as sess:
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
         writer = tf.summary.FileWriter(LOGDIR + log_param , graph=tf.get_default_graph())
 
-        # writer.add_graph(sess.graph)
         # Training cycle
         for epoch in range(training_epochs):
             avg_cost = 0.
@@ -171,32 +167,28 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 batch_y = Y_train[i*batch_size:(i+1)*batch_size]
                 batch_y = np.transpose([batch_y])
                 # Run optimization op (backprop) and cost op (to get loss value)
-                _, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x, y: batch_y})
+                c, p, s = sess.run([cost, prediction, summary_op], feed_dict={x: batch_x, y: batch_y})
                 # Compute average loss
+                # <-- PROFILING --> , options=run_options, run_metadata=run_metadata
+                # tl = timeline.Timeline(run_metadata.step_stats)
+                # ctf = tl.generate_chrome_trace_format()
+                # with open('timeline.json', 'w+') as f:
+                #     f.write(ctf)
                 avg_cost += c / total_batch
-
-                # if i % 10 == 0:
-                #     # perform the operations we defined earlier on batch
-                #     _, summary = sess.run([optimizer, summary_op], feed_dict={x: batch_x, y: batch_y})
-                #     # write log
-                #     writer.add_summary(summary, epoch * total_batch + i)
 
             # sample prediction
             label_value = batch_y
             estimate = p
             err = label_value-estimate
-
             # Display logs per epoch step
-            if epoch % 5 == 0:
+            if epoch % 3 == 0:
                 # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
-                # tf.summary.scalar("perc_error", perc_error)
-                [train_accuracy, s] = sess.run([perc_err, summary_op], feed_dict={x: batch_x, y: batch_y})
                 writer.add_summary(s, epoch)
 
                 print ("Epoch:", '%04d' % (epoch+1), "cost=", \
                     "{:.9f}".format(avg_cost))
                 print ("[*]----------------------------")
-                for i in xrange(5):
+                for i in xrange(3):
                     print ("label value:", label_value[i], \
                         "estimated value:", estimate[i])
                 print ("[*]============================")
@@ -209,6 +201,11 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
                 saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), i)
 
+        # <-- profiling -->
+        # tl = timeline.Timeline(run_metadata.step_stats)
+        # ctf = tl.generate_chrome_trace_format()
+        # with open('timeline.json', 'w') as f:
+        #     f.write(ctf)
         print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
         print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
         print("Total Time: %3.2fs" % float(time.time() - begin_time))
@@ -216,16 +213,30 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
 
+# def build_hidden_layers(num_total_layers, min_size, end_size, step=30):
+#     configs = []
+#     for i in xrange(1, num_total_layers+1, 1):
+#         hidden = [min_size] * i
+#         for idx, j in enumerate(hidden):
+#             for k in xrange(j, end_size+1, step):
+#                 print k, idx, hidden
+#                 hidden[idx] = k
+#                 test = hidden
+#                 configs = configs + [hidden]
+#     return configs
+
 def main():
-    warm = False
+    warm = True
     load_data('random200k.log-result', warm, 'hybrid')
     
     #setup to find optimal nn
-    for optimizer in ['AdagradOptimizer']:
+    for optimizer in ['AdadeltaOptimizer']:
         for learning_rate in [0.01]:
-            for batch_size in [50]:
+            for batch_size in [100]:
 
-                layer_config = [n_input, 128, 128, 100, 64, n_classes]
+                layer_config = [n_input, 10, 10, 5, n_classes]
+                # layers = build_hidden_layers(2, 30, 50, 10)
+                
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 
