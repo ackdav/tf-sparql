@@ -6,91 +6,25 @@ import re, ast, os, sys, time
 from random import sample
 import numpy as np
 
+from nn_helper import *
+
 LOGDIR = 'logs/neuralnet2/'
 
 # Parameters
-training_epochs = 100
+training_epochs = 300
 
 n_classes = 1
-n_input = 63
+n_input = 62
 X_train = np.array([])
 Y_train = np.array([])
 X_test = np.array([])
 Y_test = np.array([])
-y_vals = np.array([])
 no_model_error = 0.
 # tf Graph input
 keep_rate = 0.8
 keep_prob = tf.placeholder(tf.float32)
 x = tf.placeholder("float", [None, n_input], name="x")
 y = tf.placeholder("float", [None,1], name="y")
-
-def normalize_cols(m):
-    col_max = m.max(axis=0)
-    col_min = m.min(axis=0)
-    return (m-col_min) / (col_max - col_min)
-
-def load_data(log_file, warm, feature_mode):
-    query_data = []
-    global Y_test
-    global X_test
-    global Y_train
-    global X_train
-    global y_vals
-    global num_training_samples
-    global n_input
-    with open(log_file) as f:
-        for line in f:
-            query_line = line.strip('\n')
-            query_line = query_line.split('\t')
-            query_vec = unicode(query_line[1])
-            query_vec = ast.literal_eval(query_vec)
-
-            if (warm):
-                query_vec.insert(len(query_vec),query_line[2])
-            if not (warm):
-                query_vec.insert(len(query_vec),query_line[3])
-
-            query_data.append(query_vec)
-
-    y_vals = np.array([ float(x[n_input]) for x in query_data])
-
-    for l_ in query_data:
-        del l_[-1]
-        if feature_mode == 'structural':
-            l_=l_[0:51]
-        elif feature_mode == 'ged':
-            l_=l_[51:]
-        else:
-            l_=l_
-        n_input = len(l_)
-
-    x_vals = np.array(query_data)
-
-    # split into test and train
-    l = len(x_vals)
-    f = int(round(l*0.8))
-    indices = sample(range(l), f)
-
-    X_train = x_vals[indices].astype('float32')
-    X_test = np.delete(x_vals, indices, 0).astype('float32')
-                
-    Y_train = y_vals[indices].astype('float32')
-    Y_test = np.delete(y_vals, indices, 0).astype('float32')
-
-    num_training_samples = X_train.shape[0]
-    X_train = np.nan_to_num(normalize_cols(X_train))
-    X_test = np.nan_to_num(normalize_cols(X_test))
-
-    Y_test = np.transpose([Y_test])
-
-def no_modell_mean_error(y_vals):
-    mean_ = y_vals.mean()
-    mean_sum = 0.
-    for y_ in y_vals:
-        mean_error = abs(y_- mean_) / mean_
-        mean_sum += mean_error
-    return mean_sum / y_vals.shape[0]
 
 def multilayer_perceptron(x, layer_config, name="neuralnet"):
     '''
@@ -106,11 +40,11 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
                         'biases': tf.Variable(tf.random_normal([layer_config[i]], 0, 0.1))}
             layers[i-1] = new_layer
 
-            # with tf.name_scope("weights"):
-            #     tf.summary.histogram("w_l"+str(i)+"_summary", new_layer['weights'])
+            with tf.name_scope("weights"):
+                tf.summary.histogram("w_l"+str(i)+"_summary", new_layer['weights'])
 
-            # with tf.name_scope("biases"):
-            #     tf.summary.histogram("b_l"+str(i)+"_summary", new_layer['biases'])
+            with tf.name_scope("biases"):
+                tf.summary.histogram("b_l"+str(i)+"_summary", new_layer['biases'])
 
             l = tf.add(tf.matmul(x if i == 1 else layers_compute[i-2], layers[i-1]['weights']), layers[i-1]['biases'])
             
@@ -140,13 +74,13 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
 
     with tf.name_scope("train"):
         if optimizer == 'AdagradOptimizer':
-            optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(cost)
+            optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(perc_err)
         if optimizer == 'FtrlOptimizer':
-            optimizer = tf.train.FtrlOptimizer(learning_rate=learning_rate).minimize(cost)
+            optimizer = tf.train.FtrlOptimizer(learning_rate=learning_rate).minimize(perc_err)
         if optimizer == 'AdadeltaOptimizer':
-            optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
+            optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(perc_err)
         if optimizer == 'AdamOptimizer':
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(perc_err)
 
     # merge all summaries into a single "operation" which we can execute in a session 
     summary_op = tf.summary.merge_all()
@@ -167,7 +101,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 batch_y = Y_train[i*batch_size:(i+1)*batch_size]
                 batch_y = np.transpose([batch_y])
                 # Run optimization op (backprop) and cost op (to get loss value)
-                c, p, s = sess.run([cost, prediction, summary_op], feed_dict={x: batch_x, y: batch_y})
+                _, c, p, s = sess.run([optimizer, cost, prediction, summary_op], feed_dict={x: batch_x, y: batch_y})
                 # Compute average loss
                 # <-- PROFILING --> , options=run_options, run_metadata=run_metadata
                 # tl = timeline.Timeline(run_metadata.step_stats)
@@ -197,7 +131,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
             if epoch % 100 == 0:
                 # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
                 print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-                print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
+                print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
                 sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
                 saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), i)
 
@@ -207,7 +141,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         # with open('timeline.json', 'w') as f:
         #     f.write(ctf)
         print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(y_vals)))
+        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
         print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
@@ -227,14 +161,15 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
 
 def main():
     warm = True
-    load_data('random200k.log-result', warm, 'hybrid')
+    global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
+    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('random200k.log-result', warm, 'hybrid')
     
     #setup to find optimal nn
     for optimizer in ['AdadeltaOptimizer']:
         for learning_rate in [0.01]:
-            for batch_size in [100]:
+            for batch_size in [16]:
 
-                layer_config = [n_input, 10, 10, 5, n_classes]
+                layer_config = [n_input, 100, 150, 200, n_classes]
                 # layers = build_hidden_layers(2, 30, 50, 10)
                 
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)

@@ -1,19 +1,20 @@
 import tensorflow as tf
-import re, ast
+tf.reset_default_graph()
+
+import re, ast, time, argparse, itertools
 import numpy as np
-from random import sample
 import matplotlib.pyplot as plt
-# from tensorflow.python.ops import rnn, rnn_cell
+from tensorflow.contrib import rnn
+from nn_helper import *
 
-
-hm_epochs = 100
-batch_size = 150
+hm_epochs = 250
+batch_size = 256
 n_input = 62
-chunk_size = 2
-n_chunks = 31
+input_dimension = 62 
+sequence_length = 3 #How many steps to look back
 
-x = tf.placeholder(shape=[None, n_chunks, chunk_size], dtype=tf.float32)
-y = tf.placeholder(shape=[None, 1],  dtype=tf.float32)
+x = tf.placeholder(shape=[None, sequence_length, input_dimension], dtype=tf.float32, name="x")
+y = tf.placeholder(shape=[None, 1], dtype=tf.float32, name="y")
 
 X_train = np.array([])
 Y_train = np.array([])
@@ -26,90 +27,44 @@ loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-# Normalize by column (min-max norm to be between 0 and 1)
-def normalize_cols(m):
-	col_max = m.max(axis=0)
-	col_min = m.min(axis=0)
-	return (m-col_min) / (col_max - col_min)
-
-def load_data(log_file, warm, feature_mode):
-    query_data = []
-    global Y_test
-    global X_test
-    global Y_train
-    global X_train
-    global y_vals
-    global num_training_samples
-    global n_input
-    with open(log_file) as f:
-        for line in f:
-            query_line = line.strip('\n')
-            query_line = query_line.split('\t')
-            query_vec = unicode(query_line[1])
-            query_vec = ast.literal_eval(query_vec)
-            query_vec = query_vec[0:-1]
-            
-            if (warm):
-                query_vec.insert(len(query_vec),query_line[2])
-            if not (warm):
-                query_vec.insert(len(query_vec),query_line[3])
-            query_data.append(query_vec)
-
-    y_vals = np.array([ float(x[n_input]) for x in query_data])
-
-    for l_ in query_data:
-        del l_[-1]
-        if feature_mode == 'structural':
-            l_=l_[0:51]
-        elif feature_mode == 'ged':
-            l_=l_[51:]
-        else:
-            l_=l_
-        n_input = len(l_)
-
-    x_vals = np.array(query_data)
-
-    # split into test and train
-    l = len(x_vals)
-    f = int(round(l*0.8))
-    indices = sample(range(l), f)
-
-    X_train = x_vals[indices].astype('float32')
-    X_test = np.delete(x_vals, indices, 0).astype('float32')
-                
-    Y_train = y_vals[indices].astype('float32')
-    Y_test = np.delete(y_vals, indices, 0).astype('float32')
-
-    num_training_samples = X_train.shape[0]
-    X_train = np.nan_to_num(normalize_cols(X_train))
-    X_test = np.nan_to_num(normalize_cols(X_test))
-
-    Y_test = np.transpose([Y_test])
-
-
-def recurrent_neural_network(x):
-	layer = {'weights':tf.Variable(tf.random_normal([n_input,1])),
+def recurrent_neural_network(x, args):
+	layer = {'weights':tf.Variable(tf.random_normal([n_input*4,1])),
 						'biases':tf.Variable(tf.random_normal([1]))}
 
 	x = tf.transpose(x, [1,0,2])
-	x = tf.reshape(x, [-1, chunk_size])
-	x = tf.split(x, n_chunks, 0)
+	x = tf.reshape(x, [-1, input_dimension])
+	x = tf.split(x, sequence_length, 0)
+	print (x)
+	if args.model == 'rnn':
+		cell_fn = rnn.BasicRNNCell
+	elif args.model == 'gru':
+		cell_fn = rnn.GRUCell
+	elif args.model == 'lstm':
+		cell_fn = rnn.BasicLSTMCell
+	elif args.model == 'nas':
+		cell_fn = rnn.NASCell
+	else:
+		raise Exception("model type not supported: {}".format(args.model))
 
-	lstm_cell = tf.contrib.rnn.BasicLSTMCell(n_input)
-	outputs, states = tf.contrib.rnn.static_rnn(lstm_cell, x, dtype = tf.float32)
+	cells = []
+	for _ in xrange(args.num_layers):
+		cell = cell_fn(n_input*4)
+		cells.append(cell)
 
+	rnn_cells = tf.contrib.rnn.MultiRNNCell(cells)
+	outputs, states = tf.contrib.rnn.static_rnn(rnn_cells, x, dtype = tf.float32)
+
+	#outputs gives all states, but we only want last one
 	output = tf.matmul(outputs[-1], layer['weights']) + layer['biases']
-
 	return output
 
 
-def train_neural_network(x):
-	prediction = recurrent_neural_network(x)
-	sig = tf.sigmoid(prediction)
-	cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
-	# cost = tf.sqrt(tf.reduce_mean(y-prediction)/len(X_train))
-
-	optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
+def train_neural_network(x, args):
+	prediction = recurrent_neural_network(x, args)
+	begin_time = time.time()
+	# cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
+	perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
+	optimizer = tf.train.AdadeltaOptimizer(0.01).minimize(perc_err)
 
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
@@ -122,11 +77,23 @@ def train_neural_network(x):
 			for i in range(total_batch-1):
 				batch_x = X_train[i*batch_size:(i+1)*batch_size]
 				batch_y = Y_train[i*batch_size:(i+1)*batch_size]
-				batch_x = batch_x.reshape((batch_size, n_chunks, chunk_size))
+				#reshape to (batch_size, sequence_length / element )
+				enlarged_batch = []
+				for id, obj in enumerate(batch_x):
+					try:
+						obj = np.append(obj, batch_x[id-1]) #TODO: Correct this to work to match epoch start
+						obj = np.append(obj, batch_x[id-2])
+						# obj = np.append(obj, batch_x[id-3])
+						enlarged_batch.append(obj)
+					except:
+						print "shit" + str(id)
+				batch_x = np.array([enlarged_batch])
 
+				batch_x = batch_x.reshape([batch_size, sequence_length, input_dimension])
+				batch_y = np.transpose([batch_y])
 				# Run optimization op (backprop) and cost op (to get loss value)
-				_, c, p = sess.run([optimizer, cost, prediction], feed_dict={x: batch_x,
-    			                                          y: np.transpose([batch_y])})
+				_, c, p = sess.run([optimizer, perc_err, prediction], feed_dict={x: batch_x,
+    			                                          y: batch_y})
 				loss_vec.append(c)
 				# Compute average loss
 				avg_cost += c / total_batch
@@ -137,9 +104,9 @@ def train_neural_network(x):
 	 		estimate = p
 	 		err = label_value-estimate
 	 		# print ("num batch:", i)
-	 		perc_err = tf.reduce_mean((batch_y-p)/batch_y)
+	 		# perc_err = tf.reduce_mean((batch_y-p)/batch_y)
 			# Display logs per epoch step
-			if epoch % 50 == 0:
+			if epoch % 5 == 0:
 				print ("Epoch:", '%04d' % (epoch+1), "cost=", \
 					"{:.9f}".format(avg_cost))
 				print ("[*]----------------------------")
@@ -147,18 +114,13 @@ def train_neural_network(x):
 					print ("label value:", label_value[i], \
 						"estimated value:", estimate[i])
 				print ("[*]============================")
-		perc_err = tf.divide(tf.abs(\
-			tf.subtract(y, prediction)), \
-			tf.reduce_mean(y))
 
-		correct_prediction = tf.less(tf.cast(perc_err, "float"), 0.2)
-		accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+		# X_test = X_test.reshape((-1, sequence_length, input_dimension))
 
-		mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
+		# print ("RMSE: {:.3f}".format(cost.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})))
+		print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
+		print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
-		print "Test accuracy: {:.3f}".format(accuracy.eval({x:X_test.reshape((-1, n_chunks, chunk_size)), y: np.transpose([Y_test])}))
-		print "relative error: ",mean_relative_error.eval({x:X_test.reshape((-1, n_chunks, chunk_size)), y: np.transpose([Y_test])})
-		plot_result(loss_vec, avg_cost_vec)
 
 def plot_result(loss_vec, avg_cost_vec):
 	# Plot loss (MSE) over time
@@ -173,8 +135,16 @@ def plot_result(loss_vec, avg_cost_vec):
 
 def main():
 	print "hi"
-	load_data('random200k.log-result', True, 'hybrid')
-	train_neural_network(x)
+	global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
+	X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('random200k.log-result', False, 'hybrid')
+	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('--model', type=str, default='nas',
+                    help='rnn, gru, lstm, or nas')
+	parser.add_argument('--num_layers', type=int, default=3,
+                    help='number of layers in the RNN')
+	args = parser.parse_args()
+
+	train_neural_network(x, args)
 
 if __name__ == '__main__':
 	main()
