@@ -1,5 +1,5 @@
 from multiprocessing import Pool
-import re, sys, requests, time, random
+import re, sys, requests, time, random, json
 import numpy as np
 
 from urlparse import urlparse, parse_qs
@@ -29,10 +29,9 @@ def cleanup_query(query):
 
 def get_result_size(response):
 	try:
-		respJson = response.json()
-		result_size = len(respJson['results']['bindings'])
+		result_size = len(response['results']['bindings'])
 	except:
-		respJson = fallback_json
+		# respJson = fallback_json
 		result_size = 0
 	return result_size
 
@@ -49,41 +48,54 @@ def run_log(query_line):
 		result_size = 0
 		
 		try:
-			for _ in range(11):
-				response, exec_time = run_http_request(request_url)
-				query_times.append(exec_time)
-				
-				result_size = get_result_size(response)
-				if result_size == 0:
-					break
-				
-				time.sleep(random.random()*2)
+			# use if warm execution times are needed
+			# for _ in range(11):
+			response, exec_time = run_http_request(request_url)
+			query_times.append(exec_time)
+			
+			respJson = response.json()
+			result_size = get_result_size(respJson)
+	
+			# result_str = json.dumps(respJson['results']['bindings'])
+			# result_str = result_str.replace('\t', ' ') #safety to safely read out results in file
+			# result_str = result_str.replace('\n', ' ')
+			# time.sleep(random.random()*2)
 		except:
 			exec_time = -1
 
-		if exec_time != -1 and result_size > 0:
+		if exec_time != -1: #and result_size > 0:
 			cold_exec_time = query_times[0]
-			warm_times = query_times[1:]
-			warm_mean = np.mean(warm_times, dtype=np.float64)
+			# warm_times = query_times[1:]
+			# warm_mean = np.mean(warm_times, dtype=np.float64)
 
 			query_clean = cleanup_query(request_url)
-			return (query_clean + '\t' + str(warm_mean) + '\t' + str(cold_exec_time) + '\t' + str(result_size) + '\n')
+			return (query_clean + '\t' + str(cold_exec_time) + '\t' + str(result_size) + '\n')
 	
 def worker_pool(log_file):
 	results = []
-	with open(log_file) as f:
-
-		pool = Pool()
-		results = pool.map_async(run_log, f,1 )
-		pool.close()
-		while not results.ready():
-			remaining = results._number_left
-			print "Waiting for", remaining, "tasks to complete..."
-			sys.stdout.flush()
-			time.sleep(10)
+	# with open(log_file) as f:
+	# 	#Spawn pool of workers to execute http queries
+	# 	pool = Pool()
+	# 	results = pool.map_async(run_log, f,1)
+	# 	pool.close()
+	# 	while not results.ready():
+	# 		remaining = results._number_left
+	# 		print "Waiting for", remaining, "tasks to complete..."
+	# 		sys.stdout.flush()
+	# 		time.sleep(10)
+	with open(log_file) as in_:
+		for l_ in in_:
+			res = run_log(l_)
+			if len(results) > 25000:
+				break
+			if res is not None:
+				print ".",
+				sys.stdout.flush()
+				results.append(res)
 
 	with open(log_file + '-out', 'a') as out:
-		for entry in results.get():
+		for entry in results:
+		# for entry in results.get():
 			if entry is not None:
 				out.write(str(entry))
 

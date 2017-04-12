@@ -1,6 +1,27 @@
-import sys, re, ast
+import sys, re, ast, itertools
 from random import sample
 import numpy as np
+
+def adjust_rnn_test_arrays(X_test, Y_test, sequence_length, input_dimension):
+    enlarged_batch = []
+    for id, obj in enumerate(X_test):
+        if id > 2:
+            objn = []
+            objn.insert(0, obj.tolist())
+            try:
+                objn.insert(0,X_test[id-1].tolist())
+                # print len(X_test[id-1].tolist())
+                objn.insert(0,X_test[id-2].tolist())
+                objn.insert(0,X_test[id-3].tolist())
+                # obj = np.append(obj, batch_x[id
+                enlarged_batch.append( list(itertools.chain.from_iterable(objn))) 
+
+            except:
+                print "wrong length" + str(id)
+    X_test = np.asarray(enlarged_batch)
+    X_test = X_test.reshape([X_test.shape[0], sequence_length, input_dimension])
+    # Y_test = Y_test[3:]
+    return (X_test, Y_test)
 
 def load_data(log_file, warm, feature_mode, train_size_ratio=0.8):
     query_data = []
@@ -12,8 +33,9 @@ def load_data(log_file, warm, feature_mode, train_size_ratio=0.8):
             query_vec = unicode(query_line[1])
             query_vec = ast.literal_eval(query_vec)
             #TEMP-fix - TODO: adjust with new dataset
-            query_vec = query_vec[0:-1]
-            
+            # query_vec = query_vec[0:-1]
+
+            # query_vec.insert(len(query_vec),query_line[3])
             if (warm):
                 query_vec.insert(len(query_vec),query_line[2])
             if not (warm):
@@ -25,12 +47,12 @@ def load_data(log_file, warm, feature_mode, train_size_ratio=0.8):
 
     for l_ in query_data:
         del l_[-1]
-        if feature_mode == 'structural':
-            l_=l_[0:51]
-        elif feature_mode == 'ged':
-            l_=l_[51:]
-        else:
-            l_=l_
+        # if feature_mode == 'structural':
+        #     l_=l_[0:51]
+        # elif feature_mode == 'ged':
+        #     l_=l_[51:]
+        # else:
+        #     l_=l_
         n_input = len(l_)
 
     x_vals = np.array(query_data)
@@ -70,7 +92,7 @@ def normalize_cols(m):
     return (m-col_min) / (col_max - col_min)
 
 def main():
-    load_data('random200k.log-result', True, 'hybrid')
+    load_data('dbpedia.log-out-test', True, 'hybrid')
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,2 @@
+model_checkpoint_path: "rnn-cell-model.ckpt"
+all_model_checkpoint_paths: "rnn-cell-model.ckpt"

@@ -11,10 +11,10 @@ from nn_helper import *
 LOGDIR = 'logs/neuralnet2/'
 
 # Parameters
-training_epochs = 300
+training_epochs = 180
 
 n_classes = 1
-n_input = 62
+n_input = 1024 #62
 X_train = np.array([])
 Y_train = np.array([])
 X_test = np.array([])
@@ -50,7 +50,7 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
             
             with tf.name_scope(name):
                 l = tf.nn.relu(l) if i != len(layer_config)-1 else l
-                # l = tf.nn.dropout(l, keep_rate) if i != len(layer_config)-1 else l
+                l = tf.nn.dropout(l, keep_rate) if i != len(layer_config)-1 else l
 
             layers_compute[i-1] = l
 
@@ -72,7 +72,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
         tf.summary.scalar("relativeMeanError", perc_err)
 
-    with tf.name_scope("train"):
+    with tf.name_scope("optimizer"):
         if optimizer == 'AdagradOptimizer':
             optimizer = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(perc_err)
         if optimizer == 'FtrlOptimizer':
@@ -81,7 +81,8 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
             optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(perc_err)
         if optimizer == 'AdamOptimizer':
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(perc_err)
-
+        if optimizer == 'RMSPropOptimizer':
+            optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(perc_err)
     # merge all summaries into a single "operation" which we can execute in a session 
     summary_op = tf.summary.merge_all()
     
@@ -101,34 +102,34 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 batch_y = Y_train[i*batch_size:(i+1)*batch_size]
                 batch_y = np.transpose([batch_y])
                 # Run optimization op (backprop) and cost op (to get loss value)
-                _, c, p, s = sess.run([optimizer, cost, prediction, summary_op], feed_dict={x: batch_x, y: batch_y})
+                _, c, c_p, p, s = sess.run([optimizer, cost, perc_err, prediction, summary_op], feed_dict={x: batch_x, y: batch_y})
                 # Compute average loss
                 # <-- PROFILING --> , options=run_options, run_metadata=run_metadata
                 # tl = timeline.Timeline(run_metadata.step_stats)
                 # ctf = tl.generate_chrome_trace_format()
                 # with open('timeline.json', 'w+') as f:
                 #     f.write(ctf)
-                avg_cost += c / total_batch
+                avg_cost += c_p / total_batch
 
             # sample prediction
             label_value = batch_y
             estimate = p
             err = label_value-estimate
             # Display logs per epoch step
-            if epoch % 3 == 0:
+            if epoch % 1 == 0:
                 # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
                 writer.add_summary(s, epoch)
 
                 print ("Epoch:", '%04d' % (epoch+1), "cost=", \
                     "{:.9f}".format(avg_cost))
                 print ("[*]----------------------------")
-                for i in xrange(3):
+                for i in xrange(8):
                     print ("label value:", label_value[i], \
                         "estimated value:", estimate[i])
                 print ("[*]============================")
                 sys.stdout.flush()
 
-            if epoch % 100 == 0:
+            if epoch % 10 == 0:
                 # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
                 print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
                 print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
@@ -162,14 +163,14 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
 def main():
     warm = True
     global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
-    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('random200k.log-result', warm, 'hybrid')
+    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('dbpedia_rnn.log-mean2mean', warm, 'hybrid')
     
     #setup to find optimal nn
-    for optimizer in ['AdadeltaOptimizer']:
-        for learning_rate in [0.01]:
-            for batch_size in [16]:
+    for optimizer in ['AdamOptimizer']:
+        for learning_rate in [0.00001]:
+            for batch_size in [10]:
 
-                layer_config = [n_input, 100, 150, 200, n_classes]
+                layer_config = [n_input, 768, 768, n_classes]
                 # layers = build_hidden_layers(2, 30, 50, 10)
                 
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)

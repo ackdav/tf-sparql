@@ -7,7 +7,7 @@ __pycache__/
 /data/BioPortal/dataset/
 /data/dbpedia/dataset/
 /graph_vec_nn/logs/
-
+/cuda/
 # C extensions
 *.so
 

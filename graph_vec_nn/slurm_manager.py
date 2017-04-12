@@ -16,7 +16,6 @@ class SlurmClusterManager():
         assert 'SLURM_NPROCS' in os.environ
         assert 'SLURM_NNODES' in os.environ
 
-        print("sanity: ", os.environ['SLURM_TASKS_PER_NODE'], os.environ['SLURM_NODELIST'])
         # Grab SLURM variables
         self.hostnames = hostlist.expand_hostlist(os.environ['SLURM_NODELIST']) # expands 'NAME1(x2),NAME2' -> 'NAME1,NAME1,NAME2'
         self.num_tasks_per_host = self._parse_slurm_tasks_per_node(os.environ['SLURM_TASKS_PER_NODE']) # expands '1,2(x2)' -> '1,2,2'
@@ -24,8 +23,6 @@ class SlurmClusterManager():
         self.num_processes = int(os.environ['SLURM_NPROCS'])
         self.nnodes = int(os.environ['SLURM_NNODES'])
 
-        print ("hostnames: ", self.hostnames)
-        print ("numtasksperhost: ", self.num_tasks_per_host)
         # Sanity check that everything has been parsed correctly
         assert len(self.hostnames) == len(self.num_tasks_per_host)
         assert len(self.hostnames) == self.nnodes

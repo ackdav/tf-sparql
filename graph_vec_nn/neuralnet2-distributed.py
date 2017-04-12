@@ -9,19 +9,19 @@ import numpy as np
 
 from nn_helper import *
 
-LOGDIR = 'logs/neuralnet2/'
+LOGDIR = 'logs/nn-dist/'
 FLAGS = None
 
 if os.environ['USER']=='ackdav':
-    cluster, myjob, mytaskid = slm.SlurmClusterManager().build_cluster_spec()
+    cluster, myjob, mytaskid = slm.SlurmClusterManager(num_param_servers=1).build_cluster_spec()
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1, allow_growth=True)
     server = tf.train.Server(cluster,
                         job_name=myjob,
                         task_index=mytaskid)
 
 # Parameters
-training_epochs = 100
-display_step = 1
+training_epochs = 180
+display_step = 2
 # Network Parameters
 n_hidden_1 = 100 # 1st layer number of features
 n_hidden_2 = 100 # 2nd layer number of features
@@ -29,7 +29,7 @@ n_hidden_3 = 150
 n_hidden_4 = 70
 
 n_classes = 1
-n_input = 62
+n_input = 1024#62
 X_train = np.array([])
 Y_train = np.array([])
 X_test = np.array([])
@@ -92,7 +92,6 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
             #                                 initializer = tf.constant_initializer(0),
             #                                 trainable = False)
 
-            
             with tf.name_scope("RMSE"):
                 cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
                 tf.summary.scalar("RMSE", cost)
@@ -110,16 +109,12 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 if optimizer == 'AdamOptimizer':
                     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(perc_err, global_step=global_step)
 
-
                 # merge all summaries into a single "operation" which we can execute in a session 
                 summary_op = tf.summary.merge_all()
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver(sharded=True)
         print("Variables initialized ...", myjob)
         sys.stdout.flush()
-
-         
-
             # hook=[tf.train.StopAtStepHook(last_step=1000), _LoggerHook()]
         
             # Launch the graph
@@ -136,7 +131,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         sv = tf.train.Supervisor(is_chief=(mytaskid == 0),
                         global_step=global_step,
                         summary_op=summary_op,
-                        logdir='./logs/tmp',
+                        logdir= LOGDIR + log_param,
                         saver=saver,
                         init_op=init_op)
         frequency = 100
@@ -159,9 +154,9 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                     batch_y = np.transpose([batch_y])
 
                     # Run optimization op (backprop) and cost op (to get loss value)
-                    _, c, c_p, p, step = sess.run([optimizer, cost, perc_err, prediction, global_step], feed_dict={x: batch_x, y: batch_y})
+                    _, c_p, p, step = sess.run([optimizer, perc_err, prediction, global_step], feed_dict={x: batch_x, y: batch_y})
                     # Compute average loss
-                    avg_cost += c / batch_count
+                    avg_cost += c_p / batch_count
 
                 # # sample prediction
                 # label_value = batch_y
@@ -175,11 +170,15 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                         print("Count: %d," % (step+1), 
                                     " Epoch: %2d," % (epoch+1), 
                                     " Batch: %3d of %3d," % (i+1, batch_count), 
-                                    " Cost: %.4f," % c, 
                                     " Mean_err: %.4f," % c_p, 
                                     " AvgTime: %3.2fms" % float(elapsed_time*1000/frequency))
                         count = 0
                         sys.stdout.flush()
+                if epoch % 10 == 0:
+
+                    # print ("RMSE: {:.3f}".format(cost.eval(session=sess, feed_dict={x: X_test, y: Y_test})))
+                    print ("relative error with model: {:.3f}".format(perc_err.eval(session=sess, feed_dict={x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train,Y_test)))
+                    sys.stdout.flush()
                 # # Display logs per epoch step
                 # if epoch % 5 == 0:
                 #     # sess.run(assignment, feed_dict={x: X_test, y: Y_test})
@@ -203,12 +202,10 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
                 #     # sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
                 #     # saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"))
 
-
             print ("RMSE: {:.3f}".format(cost.eval(session=sess, feed_dict={x: X_test, y: Y_test})))
             print ("relative error with model: {:.3f}".format(perc_err.eval(session=sess, feed_dict={x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
             print("Total Time: %3.2fs" % float(time.time() - begin_time))
             sess.close()
-
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
     return "lr_%s_opt_%s_bsize_%s_warm_%s_layers_%s" % (learning_rate, optimizer, batch_size, warm, len(layer_config))
@@ -216,21 +213,20 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
 def main():
     warm = False
     global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
-    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('random200k.log-result', warm, 'hybrid')
+    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('dbpedia_rnn.log-mean2mean', warm, 'hybrid')
     
     start_time=time.clock()
     #setup to find optimal nn
-    for optimizer in ['AdamOptimizer']:
-        for learning_rate in [0.01]:
-            for batch_size in [32]:
+    for optimizer in ['AdadeltaOptimizer']:
+        for learning_rate in [0.00001]:
+            for batch_size in [10]:
                 print(server.target)
-                layer_config = [n_input, 128, 256, 512, n_classes]
+                layer_config = [n_input, 256, 512, 1024, n_classes]
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
-
                 run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config)
-
     print(time.clock()-start_time)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     print (parser)

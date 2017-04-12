@@ -10,11 +10,13 @@ from nn_helper import *
 
 LOGDIR = './logs/rnn-dist/'
 
-hm_epochs = 250
-batch_size = 64
-n_input = 62
-input_dimension = 62 
-sequence_length = 3 #How many steps to look back
+hm_epochs = 300
+batch_size = 32
+n_input = 1024#24
+input_dimension = 32#24
+sequence_length = 32#11
+rnn_size = input_dimension/4
+
 
 x = tf.placeholder(shape=[None, sequence_length, input_dimension], dtype=tf.float32, name="x")
 y = tf.placeholder(shape=[None, 1], dtype=tf.float32, name="y")
@@ -31,20 +33,20 @@ test_loss = []
 avg_cost_vec = []
 
 if os.environ['USER']=='ackdav':
-	cluster, myjob, mytaskid = slm.SlurmClusterManager().build_cluster_spec()
+	cluster, myjob, mytaskid = slm.SlurmClusterManager(num_param_servers=1).build_cluster_spec()
 	# gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1, allow_growth=True)
 	server = tf.train.Server(cluster,
 					job_name=myjob,
 					task_index=mytaskid)
 
 def recurrent_neural_network(x, args):
-	layer = {'weights':tf.Variable(tf.random_normal([n_input*4,1])),
+	layer = {'weights':tf.Variable(tf.random_normal([rnn_size,1])),
 						'biases':tf.Variable(tf.random_normal([1]))}
 
 	x = tf.transpose(x, [1,0,2])
 	x = tf.reshape(x, [-1, input_dimension])
 	x = tf.split(x, sequence_length, 0)
-	print (x)
+
 	if args.model == 'rnn':
 		cell_fn = rnn.BasicRNNCell
 	elif args.model == 'gru':
@@ -58,7 +60,7 @@ def recurrent_neural_network(x, args):
 
 	cells = []
 	for _ in xrange(args.num_layers):
-		cell = cell_fn(n_input*4)
+		cell = cell_fn(rnn_size)
 		cells.append(cell)
 
 	rnn_cells = tf.contrib.rnn.MultiRNNCell(cells)
@@ -71,13 +73,13 @@ def recurrent_neural_network(x, args):
 
 def train_neural_network(args, learning_rate, log_param, optimizer, batch_size):
 	begin_time = time.time()
-
+	print ("batch_size" + str(batch_size))
 	if myjob == "ps":
 		server.join()
 	elif myjob == "worker": 
 		with tf.device(tf.train.replica_device_setter(
-				worker_device="/job:worker/task:%d" % mytaskid,
-				cluster=cluster)):
+							worker_device="/job:worker/task:%d" % mytaskid,
+							cluster=cluster)):
 			prediction = recurrent_neural_network(x, args)
 			global_step = tf.Variable(0, name='global_step', trainable=False)
 
@@ -98,9 +100,14 @@ def train_neural_network(args, learning_rate, log_param, optimizer, batch_size):
 				if optimizer == 'AdamOptimizer':
 					optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(perc_err, global_step=global_step)
 
-			summary_op = tf.summary.merge_all()
+			
 
 			init_op = tf.global_variables_initializer()
+
+		if mytaskid==0:
+			tf.summary.scalar("relativeMeanError", perc_err)
+		
+		summary_op = tf.summary.merge_all()
 		saver = tf.train.Saver(sharded=True, reshape=True)
 		print("Variables initialized ...", myjob)
 		sys.stdout.flush()
@@ -131,23 +138,25 @@ def train_neural_network(args, learning_rate, log_param, optimizer, batch_size):
 					batch_x = X_train[i*batch_size:(i+1)*batch_size]
 					batch_y = Y_train[i*batch_size:(i+1)*batch_size]
 					#reshape to (batch_size, sequence_length / element )
-					enlarged_batch = []
-					for id, obj in enumerate(batch_x):
-						try:
-							obj = np.append(obj, batch_x[id-1]) #TODO: Correct this to work to match epoch start
-							obj = np.append(obj, batch_x[id-2])
-							# obj = np.append(obj, batch_x[id-3])
-							enlarged_batch.append(obj)
-						except:
-							print "shit" + str(id)
-					batch_x = np.array([enlarged_batch])
-
+					# enlarged_batch = []
+					# for id, obj in enumerate(batch_x):
+					# 	try:
+					# 		obj = np.append(obj, X_train[i*batch_size+id-1]) #TODO: Correct this to work to match epoch start
+					# 		obj = np.append(obj, X_train[i*batch_size+id-2])
+					# 		obj = np.append(obj, X_train[i*batch_size+id-3])
+					# 		# obj = np.append(obj, batch_x[id-3])
+					# 		enlarged_batch.append(obj)
+					# 	except:
+					# 		print "wrong length" + str(id)
+					# batch_x = np.array([enlarged_batch])
+					# batch_x = batch_x[0]
 					batch_x = batch_x.reshape([batch_size, sequence_length, input_dimension])
 					batch_y = np.transpose([batch_y])
 					# Run optimization op (backprop) and cost op (to get loss value)
-					_, c, p, step = sess.run([optimizer, perc_err, prediction, global_step], feed_dict={x: batch_x, y: batch_y})
+					_, c, p, step, su = sess.run([optimizer, perc_err, prediction, global_step, summary_op], feed_dict={x: batch_x, y: batch_y})
 
-
+					if mytaskid ==0:
+						writer.add_summary(su, epoch)
 					# loss_vec.append(c)
 					# # Compute average loss
 					# avg_cost += c / batch_count
@@ -157,14 +166,19 @@ def train_neural_network(args, learning_rate, log_param, optimizer, batch_size):
 						elapsed_time = time.time() - start_time
 						start_time = time.time()
 						print("Count: %d," % (step+1), 
-									" Epoch: %2d," % (epoch+1), 
-									" Batch: %3d of %3d," % (i+1, batch_count), 
-									" Cost: %.4f," % c, 
-									" AvgTime: %3.2fms" % float(elapsed_time*1000/frequency))
+								" Epoch: %2d," % (epoch+1), 
+								" Batch: %3d of %3d," % (i+1, batch_count), 
+								" Cost: %.4f," % c, 
+								" AvgTime: %3.2fms" % float(elapsed_time*1000/frequency))
 						sys.stdout.flush()
 						count = 0
-					if mytaskid==0 and epoch % 50 == 0:
-						saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"))
+				if epoch % 10 == 0:
+					X_test = X_test.reshape([X_test.shape[0], sequence_length, input_dimension])
+
+					# print ("RMSE: {:.3f}".format(cost.eval(session=sess, feed_dict={x: X_test, y: Y_test})))
+					print ("relative error with model: {0:.3f} job name: {1} task-id: {2}".format(perc_err.eval(session = sess, feed_dict = {x: X_test, y: Y_test}), myjob, mytaskid))
+					sys.stdout.flush()
+					# saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"))
 
 			# # sample prediction
 		# 	label_value = batch_y
@@ -182,8 +196,8 @@ def train_neural_network(args, learning_rate, log_param, optimizer, batch_size):
 			# 			"estimated value:", estimate[i])
 			# 	print ("[*]============================")
 
-			print ("RMSE: {:.3f}".format(cost.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})))
-			print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
+			# print ("RMSE: {:.3f}".format(cost.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})))
+			# print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test.reshape((-1, sequence_length, input_dimension)), y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
 			print("Total Time: %3.2fs" % float(time.time() - begin_time))
 		sv.stop()
 		# sess.close()
@@ -205,8 +219,10 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm):
 def main(args):
 	print "hi"
 	warm = False
-	global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
-	X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('random200k.log-result', warm, 'hybrid')
+	global X_train, X_test, Y_train, Y_test, num_training_samples, n_input, input_dimension
+	X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('dbpedia_rnn.log-out', False, 'hybrid')
+	# X_test, Y_test = adjust_rnn_test_arrays(X_test, Y_test, sequence_length, input_dimension)
+
 	start_time=time.clock()
 	#setup to find optimal nn
 	for optimizer in ['AdadeltaOptimizer']:
@@ -221,7 +237,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser.add_argument('--model', type=str, default='nas',
                     help='rnn, gru, lstm, or nas')
-	parser.add_argument('--num_layers', type=int, default=4,
+	parser.add_argument('--num_layers', type=int, default=3,
                     help='number of layers in the RNN')
 	args = parser.parse_args()
 	main(args)
