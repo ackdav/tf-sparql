@@ -36,17 +36,15 @@ loss_vec = []
 test_loss = []
 avg_cost_vec = []
 
-def recurrent_neural_network(x, args, name="rnn-net"):
-	'''Executes the RNN model
-
+def recurrent_neural_network(x, name="rnn-net"):
+	'''
 	Keyword arguments:
 	x -- input x, initially a placeholder, but in a session will contain features
-	args -- cmd-line arguments
 	'''
 	with tf.name_scope(name):
 		layer = {'weights':tf.Variable(tf.random_normal([state_size,num_classes])),
-						'biases':tf.Variable(tf.random_normal([num_classes]))}
-						
+					'biases':tf.Variable(tf.random_normal([num_classes]))}
+
 		#This unpacks the current state placeholer and assigns it
 		l = tf.unstack(init_state, axis=0)
 		rnn_tuple_state = tuple( [tf.contrib.rnn.LSTMStateTuple(l[idx][0], l[idx][1]) for idx in range(num_layers)])
@@ -65,10 +63,10 @@ def recurrent_neural_network(x, args, name="rnn-net"):
 		output = tf.matmul(last, layer['weights']) + layer['biases']
 		return (output, current_state)
 
-def train_neural_network(x, benchmark_err, args, log_param="cold_similarity"):
+def train_neural_network(x, benchmark_err, log_param="cold_similarity"):
 	global X_test
 	# _current_state = [None for _ in range(num_layers)]
-	prediction, current_state = recurrent_neural_network(x, args)
+	prediction, current_state = recurrent_neural_network(x)
 
 	begin_time = time.time()
 	# cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))))
@@ -154,7 +152,7 @@ def main():
                     help='number of layers in the RNN')
 	args = parser.parse_args()
 
-	train_neural_network(x,benchmark_err, args)
+	train_neural_network(x,benchmark_err)
 
 if __name__ == '__main__':
 	main()
