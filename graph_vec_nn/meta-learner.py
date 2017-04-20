@@ -15,8 +15,9 @@ scale = tf.random_uniform([DIMS], 0.5, 1.5)
 # Actually, it's more accurate to think of this as the error
 # landscape.
 def f(x):
-    x = scale*x
-    return tf.reduce_sum(x*x)
+    # x = scale*x
+    # return tf.reduce_sum(x*x)
+    return tf.square(x)
 
 # def g_sgd(gradients, state, learning_rate=0.1):
 #     return -learning_rate*gradients, state
@@ -36,11 +37,16 @@ cell = tf.make_template('cell', cell)
 
 def g_rnn(gradients, state):
     # Make a `batch' of single gradients to create a 
-    # "coordinate-wise" RNN as the paper describes. 
+    # "coordinate-wise" RNN as the paper describes.
+    print type(gradients)
     gradients = tf.expand_dims(gradients, axis=1)
  
     if state is None:
         state = [[tf.zeros([DIMS, STATE_SIZE])] * 2] * LAYERS
+    # print "gradients"
+    # print gradients
+    # print "state"
+    # print state
     update, state = cell(gradients, state)
     # Squeeze to make it a single batch again.
     return tf.squeeze(update, axis=[1]), state
@@ -59,8 +65,9 @@ def learn(optimizer):
     for _ in range(TRAINING_STEPS):
         loss = f(x)
         losses.append(loss)
+        print loss
         grads, = tf.gradients(loss, x)
-      
+
         update, state = optimizer(grads, state)
         x += update
     return losses
@@ -87,10 +94,10 @@ print(ave / 1000)
 x = np.arange(TRAINING_STEPS)
 
 for _ in range(3): 
-    sgd_l, rms_l, rnn_l = sess.run([sgd_losses, rms_losses, rnn_losses])
-    p1, = plt.plot(x, sgd_l, label='SGD')
+    rnn_l = sess.run([rnn_losses])
+    # p1, = plt.plot(x, sgd_l, label='SGD')
     p3, = plt.plot(x, rnn_l, label='RNN')
-    p2, = plt.plot(x, rms_l, label='RMS')
-    plt.legend(handles=[p1,p3, p2])
+    # p2, = plt.plot(x, rms_l, label='RMS')
+    # plt.legend(handles=[p1,p3, p2])
     plt.title('Losses')
     plt.show()

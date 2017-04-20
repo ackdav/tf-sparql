@@ -11,10 +11,10 @@ from nn_helper import *
 LOGDIR = 'logs/neuralnet2/'
 
 # Parameters
-training_epochs = 180
+training_epochs = 100
 
 n_classes = 1
-n_input = 1024 #62
+n_input = 62 #62
 X_train = np.array([])
 Y_train = np.array([])
 X_test = np.array([])
@@ -57,7 +57,7 @@ def multilayer_perceptron(x, layer_config, name="neuralnet"):
     lastlayer = len(layers_compute)-1
     return layers_compute[lastlayer]
 
-def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
+def run_nn_model(learning_rate, benchmark_err, log_param, optimizer, batch_size, layer_config):
     begin_time = time.time()
     prediction = multilayer_perceptron(x, layer_config)
     
@@ -69,7 +69,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         cost = tf.sqrt(tf.reduce_mean(tf.square(tf.subtract(y, prediction))), name="RMSE")
         tf.summary.scalar("RMSE", cost)
     with tf.name_scope("relativeMeanError"):
-        perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), tf.reduce_mean(y)))
+        perc_err = tf.reduce_mean(tf.divide(tf.abs(tf.subtract(y, prediction)), benchmark_err))
         tf.summary.scalar("relativeMeanError", perc_err)
 
     with tf.name_scope("optimizer"):
@@ -132,7 +132,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
             if epoch % 10 == 0:
                 # mean_relative_error = tf.divide(tf.to_float(tf.reduce_sum(perc_err)), Y_test.shape[0])
                 print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-                print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
+                print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(benchmark_err))
                 sess.run([optimizer, summary_op], feed_dict={x: X_test, y: Y_test})
                 saver.save(sess, LOGDIR + os.path.join(log_param, "model.ckpt"), i)
 
@@ -142,7 +142,7 @@ def run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config):
         # with open('timeline.json', 'w') as f:
         #     f.write(ctf)
         print ("RMSE: {:.3f}".format(cost.eval({x: X_test, y: Y_test})))
-        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(no_modell_mean_error(Y_train, Y_test)))
+        print ("relative error with model: {:.3f}".format(perc_err.eval({x: X_test, y: Y_test})), "without model: {:.3f}".format(benchmark_err))
         print("Total Time: %3.2fs" % float(time.time() - begin_time))
 
 def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config):
@@ -161,21 +161,22 @@ def make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_conf
 #     return configs
 
 def main():
-    warm = True
+    warm = False
+    vector_options = {'structure': True,'ged': True,'sim': False,'w2v': False}
     global X_train, X_test, Y_train, Y_test, num_training_samples, n_input
-    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('dbpedia_rnn.log-mean2mean', warm, 'hybrid')
-    
+    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('database.log-complete', warm, vector_options)
+    benchmark_err = no_modell_mean_error(Y_train, Y_test)
     #setup to find optimal nn
     for optimizer in ['AdamOptimizer']:
-        for learning_rate in [0.00001]:
+        for learning_rate in [0.0001]:
             for batch_size in [10]:
 
-                layer_config = [n_input, 768, 768, n_classes]
+                layer_config = [n_input, 1024, n_classes]
                 # layers = build_hidden_layers(2, 30, 50, 10)
                 
                 log_param = make_log_param_string(learning_rate, optimizer, batch_size, warm, layer_config)
                 print ('Starting run for %s, optimizer: %s, batch_size: %s, warm: %s, num_layers: %s' % (log_param, optimizer, batch_size, warm, len(layer_config)))
 
-                run_nn_model(learning_rate, log_param, optimizer, batch_size, layer_config)
+                run_nn_model(learning_rate, benchmark_err, log_param, optimizer, batch_size, layer_config)
 if __name__ == '__main__':
     main()

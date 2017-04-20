@@ -104,12 +104,15 @@ def algebra_structure_feature_vector(tree):
 	'''
 	maxdepth = 0
 	query_cmds = {'maxdepth': [0], 'wordcount': [0],\
-					 'triple': [0,0,0], 'bgp':[0,0,0], 'leftjoin':[0,0,0], 'union':[0,0,0], \
-						'tolist': [0,0,0], 'order': [0,0,0], 'project':[0,0,0], 'distinct': [0,0,0],\
-						'reduced': [0,0,0], 'multi': [0,0,0], 'top':[0,0,0], 'group': [0,0,0], \
-							'assign': [0,0,0], 'sequence':[0,0,0], 'bgptype':[0,0,0,0,0,0,0,0] }
+					'triple': [0,0,0], 'bgp':[0,0,0], 'leftjoin':[0,0,0], 'join':[0,0,0],
+					'union':[0,0,0], 'tolist': [0,0,0], 'order': [0,0,0], 
+					'project':[0,0,0], 'distinct': [0,0,0], 'where': [0,0,0], 
+					'reduced': [0,0,0], 'multi': [0,0,0], 'top':[0,0,0], 'group': [0,0,0],
+					'filter': [0,0,0], '||': [0,0,0],'=': [0,0,0],'slice': [0,0,0],
+					'assign': [0,0,0], 'sequence':[0,0,0], 'bgptype':[0,0,0,0,0,0,0,0] }
 
 	tokenized_graph_list = list(tokenize_list(tree))
+	print tokenized_graph_list
 	query_cmds['wordcount'][0] = len(tokenized_graph_list)
 	# print "LENGTH", len(tokenized_graph_list)
 	# TEST: test structural feature effectiveness
@@ -145,7 +148,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print structural_query_vector("SELECT*{{<http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness> ?po ?x} UNION{?x ?pi <http://dbpedia.org/resource/Tomb_Raider:_The_Angel_of_Darkness>}} ORDER BY ?pi ?po ?x")
+	print structural_query_vector("PREFIX dbpedia-owl: <http://dbpedia.org/ontology/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT * WHERE { {?city rdfs:label 'Igiugig'@en.} UNION { ?alias <http://dbpedia.org/property/redirect> ?city; rdfs:label 'Igiugig'@en. } UNION { ?alias <http://dbpedia.org/property/disambiguates> ?city; rdfs:label 'Igiugig'@en. } OPTIONAL { ?city <http://dbpedia.org/ontology/abstract> ?abstract} OPTIONAL { ?city geo:lat ?latitude; geo:long ?longitude} OPTIONAL { ?city foaf:depiction ?image } OPTIONAL { ?city rdfs:label ?name } OPTIONAL { ?city foaf:homepage ?home } OPTIONAL { ?city <http://dbpedia.org/ontology/populationTotal> ?population } OPTIONAL { ?city <http://dbpedia.org/ontology/thumbnail> ?thumbnail } FILTER (langMatches( lang(?abstract), 'en'))}")
 
 
 if __name__ == '__main__':

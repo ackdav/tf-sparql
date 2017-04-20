@@ -23,39 +23,49 @@ def adjust_rnn_test_arrays(X_test, Y_test, sequence_length, input_dimension):
     # Y_test = Y_test[3:]
     return (X_test, Y_test)
 
-def load_data(log_file, warm, feature_mode, train_size_ratio=0.8):
-    query_data = []
-
+def load_data(log_file, warm, vector_options, train_size_ratio=0.8):
+    query_vectors = []
     with open(log_file) as f:
         for line in f:
+            query_v = []
             query_line = line.strip('\n')
             query_line = query_line.split('\t')
-            query_vec = unicode(query_line[1])
-            query_vec = ast.literal_eval(query_vec)
+
+            if vector_options['structure']:
+                query_structure = ast.literal_eval(unicode(query_line[0]))
+                query_v += query_structure
+            # if vector_options['time']:
+            #     query_structure = ast.literal_eval(unicode(query_line[1]))
+            #     query_v += query_structure
+            if vector_options['ged']:
+                query_ged = ast.literal_eval(unicode(query_line[1]))
+                query_v += query_ged
+            if vector_options['sim']:
+                query_sim = ast.literal_eval(unicode(query_line[2]))
+                query_v += query_sim
+            if vector_options['w2v']:
+                query_w2v = ast.literal_eval(unicode(query_line[3]))
+                query_v += query_w2v
+            time_warm = query_line[4]
+            time_cold = query_line[5]
+
+            # query_vec = unicode(query_line[1])
+            # query_vec = ast.literal_eval(query_vec)
             #TEMP-fix - TODO: adjust with new dataset
             # query_vec = query_vec[0:-1]
-
-            # query_vec.insert(len(query_vec),query_line[3])
             if (warm):
-                query_vec.insert(len(query_vec),query_line[2])
+                query_v.insert(len(query_v), time_warm)
             if not (warm):
-                query_vec.insert(len(query_vec),query_line[3])
-            query_data.append(query_vec)
+                query_v.insert(len(query_v), time_cold)
+            query_vectors.append(query_v)
 
-    n_input = len(query_data[0])-1
-    y_vals = np.array([ float(x[n_input]) for x in query_data])
+    y_vals = np.array([ float(x[len(query_vectors[0])-1]) for x in query_vectors])
 
-    for l_ in query_data:
+    for l_ in query_vectors:
         del l_[-1]
-        # if feature_mode == 'structural':
-        #     l_=l_[0:51]
-        # elif feature_mode == 'ged':
-        #     l_=l_[51:]
-        # else:
-        #     l_=l_
         n_input = len(l_)
 
-    x_vals = np.array(query_data)
+    x_vals = np.array(query_vectors)
 
     # split into test and train
     l = len(x_vals)
@@ -73,7 +83,6 @@ def load_data(log_file, warm, feature_mode, train_size_ratio=0.8):
 
     # Y_train = np.transpose([Y_train])
     Y_test = np.transpose([Y_test])
-
     return (X_train, X_test, Y_train, Y_test, num_training_samples, n_input)
 
 def no_modell_mean_error(Y_test, Y_train):
@@ -92,7 +101,8 @@ def normalize_cols(m):
     return (m-col_min) / (col_max - col_min)
 
 def main():
-    load_data('dbpedia.log-out-test', True, 'hybrid')
+    vector_options = {'structure': False, 'time': True, 'ged': False,'sim': False,'w2v': False}
+    load_data('database.log-complete', True, vector_options)
 
 if __name__ == '__main__':
     main()
