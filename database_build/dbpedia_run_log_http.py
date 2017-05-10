@@ -16,7 +16,7 @@ def run_http_request(req):
 	Keyword-args:
 	req -- sparql query in url formatting
 	'''
-	url = 'http://claudio11.ifi.uzh.ch:8890' + req + '&timeout=20000&format=json'
+	url = 'http://claudio11.ifi.uzh.ch:8890' + req + '&format=json'
 	t0 = datetime.utcnow()
 
 	# make call and measure time taken

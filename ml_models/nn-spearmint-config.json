@@ -1,0 +1,50 @@
+{
+    "language"        : "PYTHON",
+    "main-file"       : "neuralnet2-spearmint.py",
+    "experiment-name" : "neuralnet2",
+    "variables" : {
+        "learning_rate" : {
+            "type" : "FLOAT",
+            "size" : 1,
+            "min"  : 0.0001,
+            "max"  : 0.1
+        },
+        "batch_size" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 8,
+            "max"  : 256
+        },
+        "layer_depth" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 1,
+            "max"  : 3
+        },
+        "layer0" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 16,
+            "max"  : 256
+        },
+        "layer1" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 16,
+            "max"  : 256
+        },
+        "layer2" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 16,
+            "max"  : 256
+        },
+        "gl" : {
+            "type" : "INT",
+            "size" : 1,
+            "min"  : 10,
+            "max"  : 100
+        }
+
+    }
+}

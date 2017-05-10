@@ -80,8 +80,8 @@ def convert_query_graph(line):
 		
 		# write db
 		# return (query + '\t' + str(query_vec) + "\t" + str(time_warm) + '\t' + str(time_cold) + '\t'+ str(result_size) + '\n')
-		return (query + '\t' + str(time_vec) + '\t' + str(structure_vector) + '\t' + str(ged_distances) + '\t' + str(time_warm) +
-						'\t' + str(time_cold) + '\t'+ str(result_size) + '\n')
+		return (query + '\t' + str(time_vec) + '\t' + str(structure_vector) + '\t' + str(ged_distances) 
+						'\t' + str(time_warm) + '\t' + str(time_cold) + '\t'+ str(result_size) + '\n')
 
 # def extract_word2vec(line, nlp):
 # 	splitted = line.split('\t')

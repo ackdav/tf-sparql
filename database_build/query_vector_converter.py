@@ -136,7 +136,7 @@ def main():
 	# compile_java('Main.java')
 	# escaped = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>SELECT DISTINCT ?anton_tchekov ?anton_tchekov_field_auteurWHERE {?anton_tchekov rdfs:label "Anton Tchekov"@en; rdfs:label ?anton_tchekov_field_auteur. } LIMIT 5".replace('"','\\"')
 	# print escaped
-	print structural_query_vector("CONSTRUCT { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . }WHERE { { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x1 . } UNION { <http://dbpedia.org/resource/Diane_Fletcher> <http://www.w3.org/2000/01/rdf-schema#label> ?x2 . } }")
+	print structural_query_vector("PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?name ?mbox WHERE  { ?x foaf:name  ?name . OPTIONAL { ?x foaf:mbox ?mbox}}")
 
 
 if __name__ == '__main__':
