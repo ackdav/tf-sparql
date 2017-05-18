@@ -282,7 +282,7 @@ def main(job_id, params):
     global X_train, X_test, Y_train
     global Y_test, num_training_samples, n_input
 
-    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('database-iMac.log', warm, vector_options)
+    X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('database-iMac.log-complete', warm, vector_options)
     benchmark_err = no_modell_mean_error(Y_train, Y_test)
     Y_test = np.transpose([Y_test])
     # print benchmark_err

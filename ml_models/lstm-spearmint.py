@@ -194,7 +194,7 @@ def main(job_id, params):
 	vector_options = {'structure': True,'time': False, 'ged': False,'sim': False,'w2v': False}
 
 	global X_train, X_test, Y_train, Y_test, num_training_samples, n_input, state_size
-	X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('database-iMac.log', warm, vector_options)
+	X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load_data('database-iMac.log-complete', warm, vector_options)
 
 	benchmark_err = no_modell_mean_error(Y_train, Y_test)
 	# print benchmark_err

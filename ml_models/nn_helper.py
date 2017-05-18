@@ -113,7 +113,7 @@ def normalize_cols(m):
 
 def main():
     vector_options = {'structure': False, 'time': True, 'ged': False,'sim': False,'w2v': False}
-    load = load_data('database-iMac.log', False, vector_options)
+    load = load_data('database-iMac.log-complete', False, vector_options)
     X_train, X_test, Y_train, Y_test, num_training_samples, n_input = load
     print no_modell_mean_error(Y_train, Y_test)
 
